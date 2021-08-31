@@ -6,16 +6,22 @@ to lightweight decoupled libraries with Python bindings to facilitate uptake in 
 
 ### dependencies
 
+```
 brew install python
 brew install cmake
 brew install pybind11
+```
 
 ### building C++ source
 
+```
 cmake -H. -Bbuild
 cmake --build build -- -j3
+```
 
 ### installing python package
 
+```
 cd python
 python setup.py develop
+```
