@@ -13,13 +13,24 @@ namespace emodlib
     namespace malaria
     {
 
-        float Infection::params::increment_parasite = 1.0f;
-        float Infection::params::increment_gametocyte = 1.0f;
+        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
+        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
+
+        float Infection::params::antibody_IRBC_killrate = 0.0f;
+        float Infection::params::MSP1_merozoite_kill = 0.0f;
+        float Infection::params::gametocyte_stage_survival = 0.0f;
+        float Infection::params::base_gametocyte_sexratio = 0.0f;
+        float Infection::params::base_gametocyte_production = 0.0f;
+        float Infection::params::antigen_switch_rate = 0.0f;
+        float Infection::params::merozoites_per_hepatocyte = 0.0f;
+        float Infection::params::merozoites_per_schizont = 0.0f;
+        float Infection::params::non_specific_antigenicity = 0.0f;
+        float Infection::params::RBC_destruction_multiplier = 0.0f;
+        int   Infection::params::n_asexual_cycles_wo_gametocytes = 0;
     
         void Infection::params::Configure(const ParamSet& pset)
         {
-            increment_parasite = pset["increment_parasite"].cast<float>();
-            increment_gametocyte = pset["increment_gametocyte"].cast<float>();
+
         }
     
         Infection::Infection()
@@ -31,9 +42,7 @@ namespace emodlib
 
         void Infection::Update()
         {
-            // DUMMY LOGIC
-            parasite_density += params::increment_parasite;
-            gametocyte_density += params::increment_gametocyte;
+
         }
 
         float Infection::GetParasiteDensity() const
