@@ -6,22 +6,29 @@
 
 #pragma once
 
+#include "emodlib/ParamSet.h"
+
 namespace emodlib
 {
 
     namespace malaria
     {
 
-        class SusceptibilityMalaria
+        class Susceptibility
         {
 
         public:
-            SusceptibilityMalaria();
-            virtual ~SusceptibilityMalaria() {}
+            struct params
+            {
+                static float increment_fever;
+                static void Configure(const ParamSet& pset);
+            };
+            
+            Susceptibility();
 
             void Update();
 
-            float GetFeverTemperature();
+            float GetFeverTemperature() const;
 
         private:
 

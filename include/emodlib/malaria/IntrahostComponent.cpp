@@ -13,15 +13,10 @@ namespace emodlib
     namespace malaria
     {
 
-        float IntrahostComponent::increment_parasite = 1.0f;
-        float IntrahostComponent::increment_gametocyte = 1.0f;
-        float IntrahostComponent::increment_fever = 1.0f;
-    
-        void IntrahostComponent::Configure(const ParamSet& pset)
+        void IntrahostComponent::params::Configure(const ParamSet& pset)
         {
-            increment_parasite = pset["increment_parasite"].cast<float>();
-            increment_gametocyte = pset["increment_gametocyte"].cast<float>();
-            increment_fever = pset["increment_fever"].cast<float>();
+            Infection::params::Configure(pset["infection_params"]);
+            Susceptibility::params::Configure(pset["susceptibility_params"]);
         }
     
         IntrahostComponent::IntrahostComponent()
@@ -34,7 +29,7 @@ namespace emodlib
         IntrahostComponent* IntrahostComponent::Create()
         {
             IntrahostComponent* ic = new IntrahostComponent();
-            ic->susceptibility = new SusceptibilityMalaria();
+            ic->susceptibility = new Susceptibility();
             return ic;
         }
 
@@ -49,7 +44,7 @@ namespace emodlib
 
         void IntrahostComponent::Challenge()
         {
-            infections.push_back(new InfectionMalaria());
+            infections.push_back(new Infection());
         }
 
         void IntrahostComponent::Treat()
@@ -57,7 +52,7 @@ namespace emodlib
             infections.clear();
         }
 
-        float IntrahostComponent::GetParasiteDensity()
+        float IntrahostComponent::GetParasiteDensity() const
         {
             float total = 0.0f;
             for (auto* inf: infections) {
@@ -66,7 +61,7 @@ namespace emodlib
             return total;
         }
 
-        float IntrahostComponent::GetGametocyteDensity()
+        float IntrahostComponent::GetGametocyteDensity() const
         {
             float total = 0.0f;
             for (auto* inf: infections) {
@@ -75,7 +70,7 @@ namespace emodlib
             return total;
         }
 
-        float IntrahostComponent::GetFeverTemperature()
+        float IntrahostComponent::GetFeverTemperature() const
         {
             return susceptibility->GetFeverTemperature();
         }

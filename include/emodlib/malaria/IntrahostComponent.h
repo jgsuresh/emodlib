@@ -23,29 +23,27 @@ namespace emodlib
         {
 
         public:
-            static float increment_parasite;
-            static float increment_gametocyte;
-            static float increment_fever;
-
-            static void Configure(const ParamSet& pset);
+            struct params
+            {
+                static void Configure(const ParamSet& pset);
+            };
             
             static IntrahostComponent* Create();
-            virtual ~IntrahostComponent() {}
 
             void Update();
 
             void Challenge();
             void Treat();
 
-            float GetParasiteDensity();
-            float GetGametocyteDensity();
-            float GetFeverTemperature();
+            float GetParasiteDensity() const;
+            float GetGametocyteDensity() const;
+            float GetFeverTemperature() const;
 
         private:
             IntrahostComponent();
 
-            SusceptibilityMalaria* susceptibility;
-            std::list<InfectionMalaria*> infections;
+            Susceptibility* susceptibility;
+            std::list<Infection*> infections;
         };
 
     }

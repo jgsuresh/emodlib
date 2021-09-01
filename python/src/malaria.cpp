@@ -24,7 +24,7 @@ void add_malaria_bindings(py::module& m) {
         .def_static("create", &IntrahostComponent::Create)
     
         .def_static("configure",
-                    &IntrahostComponent::Configure,
+                    &IntrahostComponent::params::Configure,
                     "Configure the component from a ParamSet dictionary",
                     "pset"_a)
     

@@ -6,23 +6,31 @@
 
 #pragma once
 
+#include "emodlib/ParamSet.h"
+
 namespace emodlib
 {
 
     namespace malaria
     {
 
-        class InfectionMalaria
+        class Infection
         {
 
         public:
-            InfectionMalaria();
-            virtual ~InfectionMalaria() {}
+            struct params
+            {
+                static float increment_parasite;
+                static float increment_gametocyte;
+                static void Configure(const ParamSet& pset);
+            };
+            
+            Infection();
 
             void Update();
 
-            float GetParasiteDensity();
-            float GetGametocyteDensity();
+            float GetParasiteDensity() const;
+            float GetGametocyteDensity() const;
 
         private:
 

@@ -1,13 +1,22 @@
+import yaml
+
 from emodlib.malaria import *
 
 
+print('Configuring...\n')
+
 params = dict(
-    increment_parasite=12.3,
-    increment_gametocyte=5.6,
-    increment_fever=0.12
+    infection_params=dict(
+        increment_parasite=12.3,
+        increment_gametocyte=5.6
+    ),
+    susceptibility_params=dict(
+        increment_fever=0.12
+    )
 )
 
-print('Configure...')
+print(yaml.dump(params))
+
 IntrahostComponent.configure(params)
 
 
