@@ -8,6 +8,8 @@
 
 #include <list>
 
+#include "emodlib/ParamSet.h"
+
 #include "InfectionMalaria.h"
 #include "SusceptibilityMalaria.h"
 
@@ -16,11 +18,17 @@ namespace emodlib
 
     namespace malaria
     {
-
+    
         class IntrahostComponent
         {
 
         public:
+            static float increment_parasite;
+            static float increment_gametocyte;
+            static float increment_fever;
+
+            static void Configure(const ParamSet& pset);
+            
             static IntrahostComponent* Create();
             virtual ~IntrahostComponent() {}
 

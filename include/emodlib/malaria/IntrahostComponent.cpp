@@ -6,12 +6,24 @@
 
 #include "IntrahostComponent.h"
 
+
 namespace emodlib
 {
 
     namespace malaria
     {
 
+        float IntrahostComponent::increment_parasite = 1.0f;
+        float IntrahostComponent::increment_gametocyte = 1.0f;
+        float IntrahostComponent::increment_fever = 1.0f;
+    
+        void IntrahostComponent::Configure(const ParamSet& pset)
+        {
+            increment_parasite = pset["increment_parasite"].cast<float>();
+            increment_gametocyte = pset["increment_gametocyte"].cast<float>();
+            increment_fever = pset["increment_fever"].cast<float>();
+        }
+    
         IntrahostComponent::IntrahostComponent()
             : susceptibility(nullptr)
             , infections()
@@ -47,7 +59,7 @@ namespace emodlib
 
         float IntrahostComponent::GetParasiteDensity()
         {
-            int total = 0.0f;
+            float total = 0.0f;
             for (auto* inf: infections) {
                 total += inf->GetParasiteDensity();
             }
@@ -56,7 +68,7 @@ namespace emodlib
 
         float IntrahostComponent::GetGametocyteDensity()
         {
-            int total = 0.0f;
+            float total = 0.0f;
             for (auto* inf: infections) {
                 total += inf->GetGametocyteDensity();
             }

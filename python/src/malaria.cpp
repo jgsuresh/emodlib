@@ -15,16 +15,28 @@ namespace emm = emodlib::malaria;
 void add_malaria_bindings(py::module& m) {
 
     using namespace emm;
+    using namespace py::literals;
+
 
     // ==== Binding of the intrahost component ==== //
     py::class_<IntrahostComponent> (m, "IntrahostComponent")
+        
+        .def_static("create", &IntrahostComponent::Create)
     
-//        .def(py::init<>())
+        .def_static("configure",
+                    &IntrahostComponent::Configure,
+                    "Configure the component from a ParamSet dictionary",
+                    "pset"_a)
     
-        .def("create", &IntrahostComponent::Create)
         .def("update", &IntrahostComponent::Update)
-        .def("challenge", &IntrahostComponent::Challenge)
-        .def("treat", &IntrahostComponent::Treat)
+    
+        .def("challenge",
+             &IntrahostComponent::Challenge,
+             "Challenge with a new infection")
+    
+        .def("treat",
+             &IntrahostComponent::Treat,
+             "Treat and clear all infections")
     
         .def_property_readonly("parasite_density", &IntrahostComponent::GetParasiteDensity)
         .def_property_readonly("gametocyte_density", &IntrahostComponent::GetGametocyteDensity)

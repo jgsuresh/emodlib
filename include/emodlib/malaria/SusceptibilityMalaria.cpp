@@ -6,6 +6,9 @@
 
 #include "SusceptibilityMalaria.h"
 
+#include "IntrahostComponent.h"  // for static params
+
+
 namespace emodlib
 {
 
@@ -21,7 +24,7 @@ namespace emodlib
         void SusceptibilityMalaria::Update()
         {
             // DUMMY LOGIC
-            fever_temperature += 1.0f;
+            fever_temperature += IntrahostComponent::increment_fever;
         }
 
         float SusceptibilityMalaria::GetFeverTemperature()

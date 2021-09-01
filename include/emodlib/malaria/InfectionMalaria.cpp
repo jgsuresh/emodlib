@@ -6,6 +6,9 @@
 
 #include "InfectionMalaria.h"
 
+#include "IntrahostComponent.h"  // for static params
+
+
 namespace emodlib
 {
 
@@ -22,8 +25,8 @@ namespace emodlib
         void InfectionMalaria::Update()
         {
             // DUMMY LOGIC
-            parasite_density += 1.0f;
-            gametocyte_density += 1.0f;
+            parasite_density += IntrahostComponent::increment_parasite;
+            gametocyte_density += IntrahostComponent::increment_gametocyte;
         }
 
         float InfectionMalaria::GetParasiteDensity()
