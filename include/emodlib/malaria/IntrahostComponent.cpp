@@ -13,11 +13,26 @@ namespace emodlib
     namespace malaria
     {
 
+        int IntrahostComponent::params::randomSeed = 0;
+    
+        int IntrahostComponent::params::falciparumMSPVars = DEFAULT_MSP_VARIANTS;
+        int IntrahostComponent::params::falciparumNonSpecTypes = DEFAULT_NONSPECIFIC_TYPES;
+        int IntrahostComponent::params::falciparumPfEMP1Vars = DEFAULT_PFEMP1_VARIANTS;
+    
+    
+        std::shared_ptr<RANDOMBASE> IntrahostComponent::p_rng = nullptr;
+
+    
         void IntrahostComponent::params::Configure(const ParamSet& pset)
         {
+            // TODO: configure top-level params
+            
+            IntrahostComponent::p_rng = std::shared_ptr<RANDOMBASE>(new PSEUDO_DES(randomSeed, 256));
+            
             Infection::params::Configure(pset["infection_params"]);
             Susceptibility::params::Configure(pset["susceptibility_params"]);
         }
+    
     
         IntrahostComponent::IntrahostComponent()
             : susceptibility(nullptr)

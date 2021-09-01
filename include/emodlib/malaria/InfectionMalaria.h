@@ -28,7 +28,7 @@ namespace emodlib
             struct params
             {
                 static ParasiteSwitchType::Enum parasite_switch_type;
-                static MalariaStrains::Enum     malaria_strains;
+//                static MalariaStrains::Enum     malaria_strains;
 
                 static float antibody_IRBC_killrate;
                 static float MSP1_merozoite_kill;
@@ -57,6 +57,7 @@ namespace emodlib
             float GetParasiteDensity() const;
             float GetGametocyteDensity() const;
 
+            
         private:
 
             suids::suid suid; // unique id of this infection within the system

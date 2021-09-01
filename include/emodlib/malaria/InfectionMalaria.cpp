@@ -6,6 +6,8 @@
 
 #include "InfectionMalaria.h"
 
+#include "IntrahostComponent.h"
+
 
 namespace emodlib
 {
@@ -14,7 +16,7 @@ namespace emodlib
     {
 
         ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
-        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
+//        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
         float Infection::params::antibody_IRBC_killrate = 0.0f;
         float Infection::params::MSP1_merozoite_kill = 0.0f;
@@ -28,14 +30,15 @@ namespace emodlib
         float Infection::params::RBC_destruction_multiplier = 0.0f;
         int   Infection::params::n_asexual_cycles_wo_gametocytes = 0;
     
+    
+        suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
+
+    
         void Infection::params::Configure(const ParamSet& pset)
         {
 
         }
     
-    
-        suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
-
     
         Infection::Infection()
             : suid(suids::nil_suid())
@@ -86,7 +89,22 @@ namespace emodlib
             suid = infectionSuidGenerator();  // next suid from generator
             m_hepatocytes = initial_hepatocytes;
             
-            // TODO: SetParameters() does all the antigenic variation random draws
+            // Here we set the antigenic repertoire of the infection
+            // Can be completely distinct strains, or partially overlapping repertoires of antigens
+            // Bull, P. C., B. S. Lowe, et al. (1998). "Parasite antigens on the infected red cell surface are targets for naturally acquired immunity to malaria." Nat Med 4(3): 358-360.
+            // Recker, M., S. Nee, et al. (2004). "Transient cross-reactive immune responses can orchestrate antigenic variation in malaria." Nature 429(6991): 555-558.
+            // In our model, not all antigens are expressed at the same time, but switching occurs.  This just sets the total repertoire
+                        
+            auto rng = IntrahostComponent::p_rng;
+            
+            m_MSPtype = rng->uniformZeroToN16(IntrahostComponent::params::falciparumMSPVars);
+            m_nonspectype = rng->uniformZeroToN16(IntrahostComponent::params::falciparumNonSpecTypes);
+
+            for (int i = 0; i < CLONAL_PfEMP1_VARIANTS; i++)
+            {
+                m_IRBCtype[i] = rng->uniformZeroToN16(IntrahostComponent::params::falciparumPfEMP1Vars);
+                m_minor_epitope_type[i] = rng->uniformZeroToN16(MINOR_EPITOPE_VARS_PER_SET) + MINOR_EPITOPE_VARS_PER_SET * m_nonspectype;
+            }
         }
     
         void Infection::Update()

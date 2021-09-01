@@ -58,6 +58,7 @@ namespace emodlib
 
             float GetFeverTemperature() const;
 
+            
         private:
 
             int32_t m_antigenic_flag;
