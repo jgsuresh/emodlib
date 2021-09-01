@@ -50,6 +50,28 @@ namespace emodlib
             ENUM_VALUE_SPEC(AsexualCycle,       1)
             ENUM_VALUE_SPEC(HepatocyteRelease,  2))
     
+        // CSP:    Circumsporozoite protein
+        // MSP1:   Merozoite surface protein
+        // PfEMP1: Plasmodium falciparum erythrocyte membrane protein (minor non-specific epitopes)
+        //                                                            (major epitopes)
+
+        ENUM_DEFINE(MalariaAntibodyType,
+            ENUM_VALUE_SPEC(CSP,                      0)
+            ENUM_VALUE_SPEC(MSP1,                     1)
+            ENUM_VALUE_SPEC(PfEMP1_minor,             2)
+            ENUM_VALUE_SPEC(PfEMP1_major,             3)
+            ENUM_VALUE_SPEC(N_MALARIA_ANTIBODY_TYPES, 4))
+    
+        // 5 stages of development and mature gametocytes
+        ENUM_DEFINE(GametocyteStages,
+            ENUM_VALUE_SPEC(Stage0,     0)
+            ENUM_VALUE_SPEC(Stage1,     1)
+            ENUM_VALUE_SPEC(Stage2,     2)
+            ENUM_VALUE_SPEC(Stage3,     3)
+            ENUM_VALUE_SPEC(Stage4,     4)
+            ENUM_VALUE_SPEC(Mature,     5)
+            ENUM_VALUE_SPEC(Count,      6))
+    
     }
 
 }

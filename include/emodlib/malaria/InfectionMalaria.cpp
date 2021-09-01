@@ -33,8 +33,10 @@ namespace emodlib
 
         }
     
+    
         suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
 
+    
         Infection::Infection()
             : suid(suids::nil_suid())
     
@@ -52,6 +54,18 @@ namespace emodlib
             , m_nonspectype(0)
             , m_minor_epitope_type()
             , m_IRBCtype()
+    
+            , m_MSP_antibody(nullptr)
+            , m_PfEMP1_antibodies(CLONAL_PfEMP1_VARIANTS)
+    
+            , m_IRBC_count(CLONAL_PfEMP1_VARIANTS)
+            , m_malegametocytes()
+            , m_femalegametocytes()
+    
+            , m_gametorate(0.0)
+            , m_gametosexratio(0.0)
+    
+            , m_inv_microliters_blood(INV_MICROLITERS_BLOOD_ADULT)
     
             , parasite_density(0)
             , gametocyte_density(0)
@@ -71,6 +85,8 @@ namespace emodlib
         {
             suid = infectionSuidGenerator();  // next suid from generator
             m_hepatocytes = initial_hepatocytes;
+            
+            // TODO: SetParameters() does all the antigenic variation random draws
         }
     
         void Infection::Update()

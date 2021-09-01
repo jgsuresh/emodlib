@@ -38,8 +38,28 @@ namespace emodlib
 
         }
     
+    
         Susceptibility::Susceptibility()
-            : fever_temperature(37.0f)
+            : m_antigenic_flag(0)
+    
+            , m_maternal_antibody_strength(0)
+            , m_CSP_antibody(nullptr)  // IMalariaAntibody* and vector<IMalariaAntibody*> assigned in Initialize()
+            , m_active_MSP_antibodies()
+            , m_active_PfEMP1_minor_antibodies()
+            , m_active_PfEMP1_major_antibodies()
+    
+            , m_RBC(0)
+            , m_RBCcapacity(0)
+            , m_RBCproduction(0)
+            , m_inv_microliters_blood(0.0f)  // assigned in Initialize() as function of age
+    
+            , m_cytokines(0.0f)
+            , m_ind_pyrogenic_threshold(0.0f)  // TODO: m_ind_* include individual heterogeneity
+            , m_ind_fever_kill_rate(0.0f)
+            , m_cytokine_stimulation(0.0f)
+            , m_parasite_density(0.0f)
+    
+            , fever_temperature(37.0f)
         {
 
         }
@@ -54,7 +74,7 @@ namespace emodlib
     
         void Susceptibility::Initialize()
         {
-            // TODO: base class handled heterogeneity in Initialize(age, immmod, riskmod) function
+
         }
     
         void Susceptibility::Update()

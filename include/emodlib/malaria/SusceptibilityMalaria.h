@@ -9,8 +9,8 @@
 #include "emodlib/ParamSet.h"
 
 #include "MalariaEnums.h"
-//#include "MalariaContexts.h"
-//#include "IMalariaAntibody.h"
+#include "IMalariaAntibody.h"
+
 
 namespace emodlib
 {
@@ -51,6 +51,7 @@ namespace emodlib
                 static void Configure(const ParamSet& pset);
             };
             
+            
             static Susceptibility *Create();
             
             void Update();
@@ -59,10 +60,35 @@ namespace emodlib
 
         private:
 
+            int32_t m_antigenic_flag;
+
+            // containers for antibody objects
+            float m_maternal_antibody_strength;
+            IMalariaAntibody* m_CSP_antibody;
+            std::vector<IMalariaAntibody*> m_active_MSP_antibodies;
+            std::vector<IMalariaAntibody*> m_active_PfEMP1_minor_antibodies;
+            std::vector<IMalariaAntibody*> m_active_PfEMP1_major_antibodies;
+
+            // RBC information
+            int64_t m_RBC;
+            int64_t m_RBCcapacity;
+            int64_t m_RBCproduction;   // how many RBC's a person should have /120 (AVERAGE_RBC_LIFESPAN)
+            float   m_inv_microliters_blood; // ==/(age dependent estimate of blood volume)
+
+            // symptomatic variables
+            float m_cytokines;
+            float m_ind_pyrogenic_threshold;
+            float m_ind_fever_kill_rate;
+            float m_cytokine_stimulation;
+            float m_parasite_density;
+            
             float fever_temperature;
             
+            
             Susceptibility();
-            void Initialize();
+            // TODO: expose heterogeneity initialization + interaction with DemographicComponent via Python layer
+            void Initialize();  // <-- original base class: Initialize(age, immmod, riskmod)
+
         };
 
     }

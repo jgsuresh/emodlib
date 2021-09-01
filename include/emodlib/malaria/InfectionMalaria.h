@@ -11,8 +11,8 @@
 
 #include "Malaria.h"
 #include "MalariaEnums.h"
-//#include "MalariaContexts.h"
-//#include "IMalariaAntibody.h"
+#include "IMalariaAntibody.h"
+
 
 namespace emodlib
 {
@@ -45,7 +45,9 @@ namespace emodlib
                 static void Configure(const ParamSet& pset);
             };
             
+            
             static suids::distributed_generator infectionSuidGenerator;
+            
             
             static Infection *Create(int initial_hepatocytes=1);
             
@@ -74,8 +76,22 @@ namespace emodlib
             int32_t m_minor_epitope_type[CLONAL_PfEMP1_VARIANTS];
             int32_t m_IRBCtype[CLONAL_PfEMP1_VARIANTS];
             
+            IMalariaAntibody* m_MSP_antibody;
+            std::vector< pfemp1_antibody_t > m_PfEMP1_antibodies;
+
+            std::vector<int64_t> m_IRBC_count;
+            int64_t m_malegametocytes[GametocyteStages::Count];
+            int64_t m_femalegametocytes[GametocyteStages::Count];
+
+            // govern distribution of next merozoites -- TODO: why are these not in Params?
+            double m_gametorate;
+            double m_gametosexratio;
+            
+            double m_inv_microliters_blood;   // tracks blood volume based on age
+            
             float parasite_density;
             float gametocyte_density;
+            
             
             Infection();
             void Initialize(int initial_hepatocytes);
