@@ -13,6 +13,8 @@ brew install python
 brew install cmake
 brew install pybind11
 ```
+* https://developer.apple.com/xcode/ (clang compiler included in XCode command line tools?)
+
 #### Windows
 * https://www.python.org/downloads/
 * https://cmake.org/download/ (add to system path during MSI install steps so it's callable from commandline?)
