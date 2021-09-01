@@ -104,6 +104,11 @@ ext_modules = [
 ]
 
 
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+        
+        
 setup(
     name='emodlib',
     version=get_version(),
@@ -112,10 +117,10 @@ setup(
     url='https://github.com/edwenger/emodlib',
     description=('A library of demographic, within-host, and contact-network'
                  ' algorithms for disease modeling.'),
-    long_description='',  # TODO: import README here
+    long_description=readme(),
     packages=find_packages(),
     ext_modules=ext_modules,
-    install_requires=[],
+    install_requires=['pyyaml'],
     cmdclass={'build_ext': CMakeBuild},
     zip_safe=False,
 )
