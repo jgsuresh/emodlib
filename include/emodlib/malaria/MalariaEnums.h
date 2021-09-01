@@ -45,6 +45,11 @@ namespace emodlib
             ENUM_VALUE_SPEC(CYTOKINE_KILLING, 2)
             ENUM_VALUE_SPEC(PYROGENIC_THRESHOLD_VS_AGE, 3))
     
+        ENUM_DEFINE(AsexualCycleStatus,
+            ENUM_VALUE_SPEC(NoAsexualCycle,     0)
+            ENUM_VALUE_SPEC(AsexualCycle,       1)
+            ENUM_VALUE_SPEC(HepatocyteRelease,  2))
+    
     }
 
 }

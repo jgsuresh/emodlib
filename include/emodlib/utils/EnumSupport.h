@@ -23,6 +23,9 @@
     };\
     };
 
+namespace emodlib
+{
+
     struct EnumSupport
     {   
         static const char* lookup_enum_name(int int_value, int total, const int *values, const char** strings)
@@ -47,6 +50,8 @@
             return -1;
         }
     };
+
+}
 
 #define ENUM_VALUE(name) (name)
 #define ENUM_VALUE_SPEC(name, value) ((name)(value))

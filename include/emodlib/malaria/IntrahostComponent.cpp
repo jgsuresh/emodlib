@@ -29,7 +29,7 @@ namespace emodlib
         IntrahostComponent* IntrahostComponent::Create()
         {
             IntrahostComponent* ic = new IntrahostComponent();
-            ic->susceptibility = new Susceptibility();
+            ic->susceptibility = Susceptibility::Create();
             return ic;
         }
 
@@ -44,7 +44,8 @@ namespace emodlib
 
         void IntrahostComponent::Challenge()
         {
-            infections.push_back(new Infection());
+            Infection* inf = Infection::Create();
+            infections.push_back(inf);
         }
 
         void IntrahostComponent::Treat()

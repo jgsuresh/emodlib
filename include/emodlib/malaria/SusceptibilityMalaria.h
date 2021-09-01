@@ -22,6 +22,7 @@ namespace emodlib
         {
 
         public:
+            
             struct params
             {
                 // Used by MalariaAntibody for Decay and Update functions
@@ -50,8 +51,8 @@ namespace emodlib
                 static void Configure(const ParamSet& pset);
             };
             
-            Susceptibility();
-
+            static Susceptibility *Create();
+            
             void Update();
 
             float GetFeverTemperature() const;
@@ -59,6 +60,9 @@ namespace emodlib
         private:
 
             float fever_temperature;
+            
+            Susceptibility();
+            void Initialize();
         };
 
     }

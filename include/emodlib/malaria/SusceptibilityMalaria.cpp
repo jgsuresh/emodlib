@@ -44,6 +44,19 @@ namespace emodlib
 
         }
 
+        Susceptibility* Susceptibility::Create()
+        {
+            Susceptibility *newsusceptibility = new Susceptibility();
+            newsusceptibility->Initialize();
+            
+            return newsusceptibility;
+        }
+    
+        void Susceptibility::Initialize()
+        {
+            // TODO: base class handled heterogeneity in Initialize(age, immmod, riskmod) function
+        }
+    
         void Susceptibility::Update()
         {
 

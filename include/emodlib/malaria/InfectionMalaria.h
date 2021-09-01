@@ -7,7 +7,9 @@
 #pragma once
 
 #include "emodlib/ParamSet.h"
+#include "emodlib/utils/suids.hpp"
 
+#include "Malaria.h"
 #include "MalariaEnums.h"
 //#include "MalariaContexts.h"
 //#include "IMalariaAntibody.h"
@@ -22,6 +24,7 @@ namespace emodlib
         {
 
         public:
+            
             struct params
             {
                 static ParasiteSwitchType::Enum parasite_switch_type;
@@ -42,17 +45,40 @@ namespace emodlib
                 static void Configure(const ParamSet& pset);
             };
             
-            Infection();
-
+            static suids::distributed_generator infectionSuidGenerator;
+            
+            static Infection *Create(int initial_hepatocytes=1);
+            
             void Update();
 
+            suids::suid GetSuid() const;
             float GetParasiteDensity() const;
             float GetGametocyteDensity() const;
 
         private:
 
+            suids::suid suid; // unique id of this infection within the system
+            
+            float duration;   // local timer
+            float total_duration;
+            float incubation_timer;
+            float infectious_timer;
+            
+            double m_IRBCtimer;
+            int32_t m_hepatocytes;
+            AsexualCycleStatus::Enum m_asexual_phase;
+            int32_t m_asexual_cycle_count;
+            
+            int32_t m_MSPtype;        // allow variation in MSP from clone to clone
+            int32_t m_nonspectype;    // what is the set of minor_epitope_types
+            int32_t m_minor_epitope_type[CLONAL_PfEMP1_VARIANTS];
+            int32_t m_IRBCtype[CLONAL_PfEMP1_VARIANTS];
+            
             float parasite_density;
             float gametocyte_density;
+            
+            Infection();
+            void Initialize(int initial_hepatocytes);
         };
 
     }

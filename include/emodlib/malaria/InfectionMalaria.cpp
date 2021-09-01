@@ -33,18 +33,57 @@ namespace emodlib
 
         }
     
+        suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
+
         Infection::Infection()
-            : parasite_density(0)
+            : suid(suids::nil_suid())
+    
+            , duration(0.0f)
+            , total_duration(0.0f)
+            , incubation_timer(0.0f)
+            , infectious_timer(0.0f)
+    
+            , m_IRBCtimer(0.0)
+            , m_hepatocytes(0)
+            , m_asexual_phase(AsexualCycleStatus::NoAsexualCycle)
+            , m_asexual_cycle_count(0)
+    
+            , m_MSPtype(0)
+            , m_nonspectype(0)
+            , m_minor_epitope_type()
+            , m_IRBCtype()
+    
+            , parasite_density(0)
             , gametocyte_density(0)
         {
 
         }
 
+        Infection* Infection::Create(int initial_hepatocytes)
+        {
+            Infection *newinfection = new Infection();
+            newinfection->Initialize(initial_hepatocytes);
+            
+            return newinfection;
+        }
+    
+        void Infection::Initialize(int initial_hepatocytes)
+        {
+            suid = infectionSuidGenerator();  // next suid from generator
+            m_hepatocytes = initial_hepatocytes;
+        }
+    
         void Infection::Update()
         {
 
         }
 
+        suids::suid Infection::GetSuid() const
+        {
+            return suid;
+            
+        }
+    
         float Infection::GetParasiteDensity() const
         {
             return parasite_density;
