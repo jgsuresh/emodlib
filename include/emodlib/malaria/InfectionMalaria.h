@@ -57,8 +57,10 @@ namespace emodlib
             void Update(float dt);
 
             suids::suid GetSuid() const;
-            float GetParasiteDensity() const;
-            float GetGametocyteDensity() const;
+            int64_t get_MaleGametocytes(int stage) const;
+            int64_t get_FemaleGametocytes(int stage) const;
+            float get_asexual_density() const;
+            float get_mature_gametocyte_density() const;
 
             
         private:
@@ -88,9 +90,6 @@ namespace emodlib
             double m_gametosexratio;
                         
             Susceptibility* immunity;
-            
-            float parasite_density;  // TODO: remove placeholders when actual calculations are in place
-            float gametocyte_density;
             
             
             Infection();

@@ -75,7 +75,7 @@ namespace emodlib
         {
             float total = 0.0f;
             for (auto* inf: infections) {
-                total += inf->GetParasiteDensity();
+                total += inf->get_asexual_density();
             }
             return total;
         }
@@ -84,7 +84,7 @@ namespace emodlib
         {
             float total = 0.0f;
             for (auto* inf: infections) {
-                total += inf->GetGametocyteDensity();
+                total += inf->get_mature_gametocyte_density();
             }
             return total;
         }

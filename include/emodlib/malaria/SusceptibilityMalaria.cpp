@@ -396,6 +396,11 @@ namespace emodlib
             return m_RBC;
         }
 
+        float Susceptibility::get_inv_microliters_blood() const
+        {
+            return m_inv_microliters_blood;
+        }
+    
         double Susceptibility::get_RBC_availability() const
         {
             return (m_RBCcapacity > 0) ? (double(m_RBC) / m_RBCcapacity) : 0.0;
@@ -416,6 +421,11 @@ namespace emodlib
         float Susceptibility::get_fever_killing_rate() const
         {
             return m_ind_fever_kill_rate;
+        }
+
+        float Susceptibility::get_parasite_density() const
+        {
+            return m_parasite_density;
         }
 
         float Susceptibility::get_maternal_antibodies() const

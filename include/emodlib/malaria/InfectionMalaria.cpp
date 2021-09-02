@@ -86,9 +86,6 @@ namespace emodlib
             , m_gametosexratio(0.0)
         
             , immunity(nullptr)
-    
-            , parasite_density(0)
-            , gametocyte_density(0)
         {
 
         }
@@ -491,7 +488,7 @@ namespace emodlib
                         m_femalegametocytes[i] = 0;
                 }
 
-                // mature gametocytes die as part Individual_Malaria::getinfectiousness()
+                // TODO: mature gametocyte counts are accumulated + (decay + drug killing) as part of Individual_Malaria::UpdateInfectiousness() --> UpdateGametocyteCounts() -- called in separate human-to-mosquito infectiousness calculations before loop over individual update step.
             }
         }
 
@@ -505,14 +502,27 @@ namespace emodlib
             return suid;
         }
     
-        float Infection::GetParasiteDensity() const
+        int64_t Infection::get_MaleGametocytes(int stage) const
         {
-            return parasite_density;
+            return m_malegametocytes[stage];
+        }
+    
+        int64_t Infection::get_FemaleGametocytes(int stage) const
+        {
+            return m_femalegametocytes[stage];
+        }
+    
+        float Infection::get_asexual_density() const
+        {
+            int64_t totalIRBC = 0;
+            totalIRBC = std::accumulate(m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC);
+            return totalIRBC * immunity->get_inv_microliters_blood();
         }
 
-        float Infection::GetGametocyteDensity() const
+        float Infection::get_mature_gametocyte_density() const
         {
-            return gametocyte_density;
+            int64_t mature_female_gametocytes = get_FemaleGametocytes(GametocyteStages::Mature);
+            return mature_female_gametocytes * immunity->get_inv_microliters_blood();
         }
 
     }
