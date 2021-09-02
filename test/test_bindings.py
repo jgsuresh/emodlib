@@ -5,7 +5,8 @@ from emodlib.malaria import *
 
 def describe(c, t=None):
     s = 't=%d: ' % t if t is not None else ''
-    s += '(p,g,f) = (%0.2f, %0.2f, %0.2f)' % (c.parasite_density, c.gametocyte_density, c.fever_temperature)
+    s += '(asexual, mature gametocyte, fever) = (%0.2f, %0.3f, %0.1f)' % \
+        (c.parasite_density, c.gametocyte_density, c.fever_temperature)
     print(s)
 
 
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     print('Model parameters...\n')
     print(yaml.dump(params))
 
-    print('Configure...\n')
+    print('Configure...')
     IntrahostComponent.configure(params)
 
     print('Create...')
