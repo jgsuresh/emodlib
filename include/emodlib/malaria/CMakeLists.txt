@@ -6,7 +6,8 @@ message(STATUS "Found pybind11 v${pybind11_VERSION}: ${pybind11_INCLUDE_DIRS}")
 add_library(${EMODLIB_MALARIA_TARGET} SHARED
     IntrahostComponent.cpp
     InfectionMalaria.cpp
-    SusceptibilityMalaria.cpp)
+    SusceptibilityMalaria.cpp
+    MalariaAntibody.cpp)
 
 # include top-level directory to allow full include paths
 target_include_directories(${EMODLIB_MALARIA_TARGET} PUBLIC ${CMAKE_SOURCE_DIR}/include)

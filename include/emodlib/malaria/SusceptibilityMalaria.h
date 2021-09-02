@@ -53,6 +53,7 @@ namespace emodlib
             
             
             static Susceptibility *Create();
+            IMalariaAntibody* RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity=0.0f);
             
             void Update();
 
@@ -61,9 +62,10 @@ namespace emodlib
             
         private:
 
-            int32_t m_antigenic_flag;
-
+            float age;  // TODO: access from DemographicComponent * -- was in base class as parallel variable
+            
             // containers for antibody objects
+            int32_t m_antigenic_flag;
             float m_maternal_antibody_strength;
             IMalariaAntibody* m_CSP_antibody;
             std::vector<IMalariaAntibody*> m_active_MSP_antibodies;
@@ -87,9 +89,11 @@ namespace emodlib
             
             
             Susceptibility();
+            
             // TODO: expose heterogeneity initialization + interaction with DemographicComponent via Python layer
             void Initialize();  // <-- original base class: Initialize(age, immmod, riskmod)
-
+            void  recalculateBloodCapacity( float _age );
+            
         };
 
     }

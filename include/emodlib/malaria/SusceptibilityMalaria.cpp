@@ -6,6 +6,13 @@
 
 #include "SusceptibilityMalaria.h"
 
+#include <iostream>
+
+#include "emodlib/utils/Common.h"
+#include "Malaria.h"
+
+#include "MalariaAntibody.h"
+
 
 namespace emodlib
 {
@@ -40,8 +47,9 @@ namespace emodlib
     
     
         Susceptibility::Susceptibility()
-            : m_antigenic_flag(0)
+            : age(0)
     
+            , m_antigenic_flag(0)
             , m_maternal_antibody_strength(0)
             , m_CSP_antibody(nullptr)  // IMalariaAntibody* and vector<IMalariaAntibody*> assigned in Initialize()
             , m_active_MSP_antibodies()
@@ -74,7 +82,67 @@ namespace emodlib
     
         void Susceptibility::Initialize()
         {
+            age = 20 * DAYSPERYEAR;  // TODO: update + access from elsewhere; similarly age-dependent biting risk
+            
+            recalculateBloodCapacity(age);
+            m_RBC = m_RBCcapacity;
 
+            // Track individual pyrogenic thresholds + fever killing rates as instance variables
+            m_ind_pyrogenic_threshold = params::pyrogenic_threshold;
+            m_ind_fever_kill_rate = params::fever_IRBC_killrate;
+            
+            m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(0);
+
+            // MSP + PfEMP1 antibodies are added upon infection
+        }
+    
+        IMalariaAntibody* Susceptibility::RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity)
+        {
+            std::vector<IMalariaAntibody*> *variant_vector;
+            IMalariaAntibody* (*typed_create_antibody)(int,float);
+
+            switch( type )
+            {
+            case MalariaAntibodyType::CSP:
+                return m_CSP_antibody; // only one CSP variant, so ignore second argument for now.
+
+            case MalariaAntibodyType::MSP1:
+                variant_vector = &m_active_MSP_antibodies;
+                typed_create_antibody = MalariaAntibodyMSP::CreateAntibody;
+                break;
+
+            case MalariaAntibodyType::PfEMP1_minor:
+                variant_vector = &m_active_PfEMP1_minor_antibodies;
+                typed_create_antibody = MalariaAntibodyPfEMP1Minor::CreateAntibody;
+                break;
+
+            case MalariaAntibodyType::PfEMP1_major:
+                variant_vector = &m_active_PfEMP1_major_antibodies;
+                typed_create_antibody = MalariaAntibodyPfEMP1Major::CreateAntibody;
+                break;
+
+            default:
+                std::cout << "Unknown MalariaAntibodyType enum used";
+                throw;
+            }
+            
+            IMalariaAntibody* antibody = nullptr;
+            for (auto tmp_antibody : *variant_vector)
+            {
+                if ( tmp_antibody->GetAntibodyVariant() == variant )
+                {
+                    antibody = tmp_antibody;
+                    break;
+                }
+            }
+
+            if (antibody == nullptr) // make a new antibody if it hasn't been created yet
+            {
+                antibody = typed_create_antibody(variant, capacity);
+                variant_vector->push_back(antibody);
+            }
+
+            return antibody;
         }
     
         void Susceptibility::Update()
@@ -82,6 +150,28 @@ namespace emodlib
 
         }
 
+        void Susceptibility::recalculateBloodCapacity( float _age )
+        {
+            // How many RBCs a person should have determined by age.
+            // This sets the daily production of red blood cells for adults to maintain
+            // standard equilibrium RBC concentrations given RBC lifetime
+            if ( _age > (20 * DAYSPERYEAR) )
+            {
+                // 2.0*10^11 (RBCs/day)*(120 days)=2.4x10^13 RBCs ~= 5 liters * 5x10^6 RBCs/microliter
+                m_RBCproduction         = ADULT_RBC_PRODUCTION;
+                m_inv_microliters_blood = float(1 / ( (0.225 * (7300/DAYSPERYEAR) + 0.5) * 1e6 ));
+            }
+            else
+            {
+                // Sets daily production of red blood cells for children to set their equilibrium RBC concentrations and blood volume given an RBC lifetime
+                // Only approximate due to linear increase in blood volume from 0.5 to 5 liters with age, a better growth model would be nonlinear
+                m_RBCproduction         = int64_t(INFANT_RBC_PRODUCTION + (_age * .000137) * (ADULT_RBC_PRODUCTION - INFANT_RBC_PRODUCTION)); //*.000137==/(20*DAYSPERYEAR)
+                m_inv_microliters_blood = float(1 / ( (0.225 * (_age/DAYSPERYEAR) + 0.5 ) * 1e6 ));
+            }
+            
+            m_RBCcapacity = m_RBCproduction * AVERAGE_RBC_LIFESPAN;  // Health equilibrium of RBC is production*lifetime.  This is the total number of RBC per human
+        }
+    
         float Susceptibility::GetFeverTemperature() const
         {
             return fever_temperature;

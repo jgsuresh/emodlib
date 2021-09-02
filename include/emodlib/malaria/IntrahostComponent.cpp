@@ -59,7 +59,7 @@ namespace emodlib
 
         void IntrahostComponent::Challenge()
         {
-            Infection* inf = Infection::Create();
+            Infection* inf = Infection::Create(susceptibility);
             infections.push_back(inf);
         }
 

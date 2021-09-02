@@ -20,6 +20,8 @@ namespace emodlib
     namespace malaria
     {
 
+        class Susceptibility;
+    
         class Infection
         {
 
@@ -49,7 +51,7 @@ namespace emodlib
             static suids::distributed_generator infectionSuidGenerator;
             
             
-            static Infection *Create(int initial_hepatocytes=1);
+            static Infection *Create(Susceptibility* _susceptibility, int initial_hepatocytes=1);
             
             void Update();
 
@@ -90,12 +92,14 @@ namespace emodlib
             
             double m_inv_microliters_blood;   // tracks blood volume based on age
             
+            Susceptibility* susceptibility;  // TODO: link on Infection::Create(Susceptibility*) do we like this?
+            
             float parasite_density;
             float gametocyte_density;
             
             
             Infection();
-            void Initialize(int initial_hepatocytes);
+            void Initialize(Susceptibility* _susceptibility, int initial_hepatocytes);
         };
 
     }

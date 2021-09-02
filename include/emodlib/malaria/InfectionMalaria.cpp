@@ -7,6 +7,7 @@
 #include "InfectionMalaria.h"
 
 #include "IntrahostComponent.h"
+#include "SusceptibilityMalaria.h"
 
 
 namespace emodlib
@@ -70,21 +71,23 @@ namespace emodlib
     
             , m_inv_microliters_blood(INV_MICROLITERS_BLOOD_ADULT)
     
+            , susceptibility(nullptr)
+    
             , parasite_density(0)
             , gametocyte_density(0)
         {
 
         }
 
-        Infection* Infection::Create(int initial_hepatocytes)
+        Infection* Infection::Create(Susceptibility* _susceptibility, int initial_hepatocytes)
         {
             Infection *newinfection = new Infection();
-            newinfection->Initialize(initial_hepatocytes);
+            newinfection->Initialize(_susceptibility, initial_hepatocytes);
             
             return newinfection;
         }
     
-        void Infection::Initialize(int initial_hepatocytes)
+        void Infection::Initialize(Susceptibility* _susceptibility, int initial_hepatocytes)
         {
             suid = infectionSuidGenerator();  // next suid from generator
             m_hepatocytes = initial_hepatocytes;
@@ -104,6 +107,22 @@ namespace emodlib
             {
                 m_IRBCtype[i] = rng->uniformZeroToN16(IntrahostComponent::params::falciparumPfEMP1Vars);
                 m_minor_epitope_type[i] = rng->uniformZeroToN16(MINOR_EPITOPE_VARS_PER_SET) + MINOR_EPITOPE_VARS_PER_SET * m_nonspectype;
+            }
+            
+            susceptibility = _susceptibility;
+            
+            m_MSP_antibody = susceptibility->RegisterAntibody(MalariaAntibodyType::MSP1, m_MSPtype);
+            
+            for( int ivariant = 0; ivariant < m_PfEMP1_antibodies.size(); ivariant++ )
+            {
+                m_PfEMP1_antibodies[ivariant].major = nullptr;
+                m_PfEMP1_antibodies[ivariant].minor = nullptr;
+
+                if ( m_IRBC_count[ivariant] > 0 )
+                {
+                    m_PfEMP1_antibodies[ivariant].minor  = susceptibility->RegisterAntibody(MalariaAntibodyType::PfEMP1_minor, m_minor_epitope_type[ivariant]);
+                    m_PfEMP1_antibodies[ivariant].major  = susceptibility->RegisterAntibody(MalariaAntibodyType::PfEMP1_major, m_IRBCtype[ivariant]);
+                }
             }
         }
     
