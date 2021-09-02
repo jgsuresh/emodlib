@@ -34,6 +34,7 @@ namespace emodlib
 
                 static float incubation_period;
                 static float antibody_IRBC_killrate;
+                static float non_specific_antigenicity;
                 static float MSP1_merozoite_kill;
                 static float gametocyte_stage_survival;
                 static float base_gametocyte_sexratio;
@@ -41,7 +42,6 @@ namespace emodlib
                 static float antigen_switch_rate;
                 static float merozoites_per_hepatocyte;
                 static float merozoites_per_schizont;
-                static float non_specific_antigenicity;
                 static float RBC_destruction_multiplier;
                 static int   n_asexual_cycles_wo_gametocytes;
                 

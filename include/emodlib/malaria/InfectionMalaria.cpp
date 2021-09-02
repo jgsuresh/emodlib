@@ -25,18 +25,19 @@ namespace emodlib
 //        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
 //        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
-        float Infection::params::incubation_period = 0.0f; // liver stage duration
-        float Infection::params::antibody_IRBC_killrate = 0.0f;
-        float Infection::params::MSP1_merozoite_kill = 0.0f;
-        float Infection::params::gametocyte_stage_survival = 0.0f;
-        float Infection::params::base_gametocyte_sexratio = 0.0f;
-        float Infection::params::base_gametocyte_production = 0.0f;
-        float Infection::params::antigen_switch_rate = 0.0f;
-        float Infection::params::merozoites_per_hepatocyte = 0.0f;
-        float Infection::params::merozoites_per_schizont = 0.0f;
-        float Infection::params::non_specific_antigenicity = 0.0f;
-        float Infection::params::RBC_destruction_multiplier = 0.0f;
-        int   Infection::params::n_asexual_cycles_wo_gametocytes = 0;
+        float Infection::params::incubation_period = 7.0f; // liver stage duration
+    
+        float Infection::params::antibody_IRBC_killrate = DEFAULT_ANTIBODY_IRBC_KILLRATE;
+        float Infection::params::non_specific_antigenicity = DEFAULT_NON_SPECIFIC_ANTIGENICITY;
+        float Infection::params::MSP1_merozoite_kill = DEFAULT_MSP1_MEROZOITE_KILL;
+        float Infection::params::gametocyte_stage_survival = DEFAULT_GAMETOCYTE_STAGE_SURVIVAL;
+        float Infection::params::base_gametocyte_sexratio = DEFAULT_BASE_GAMETOCYTE_SEX_RATIO;
+        float Infection::params::base_gametocyte_production = DEFAULT_BASE_GAMETOCYTE_PRODUCTION;
+        float Infection::params::antigen_switch_rate = DEFAULT_ANTIGEN_SWITCH_RATE;
+        float Infection::params::merozoites_per_hepatocyte = DEFAULT_MEROZOITES_PER_HEPATOCYTE;
+        float Infection::params::merozoites_per_schizont = DEFAULT_MEROZOITES_PER_SCHIZONT;
+        float Infection::params::RBC_destruction_multiplier = DEFAULT_RBC_DESTRUCTION_MULTIPLIER;
+        int   Infection::params::n_asexual_cycles_wo_gametocytes = DEFAULT_ASEXUAL_CYCLES_WITHOUT_GAMETOCYTES;
     
     
         suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
@@ -44,7 +45,19 @@ namespace emodlib
     
         void Infection::params::Configure(const ParamSet& pset)
         {
-
+            incubation_period = pset["Base_Incubation_Period"].cast<float>();  // TODO: gaussian in more recent configs
+            
+            antibody_IRBC_killrate = pset["Antibody_IRBC_Kill_Rate"].cast<float>();
+            non_specific_antigenicity = pset["Nonspecific_Antigenicity_Factor"].cast<float>();
+            MSP1_merozoite_kill = pset["MSP1_Merozoite_Kill_Fraction"].cast<float>();
+            gametocyte_stage_survival = pset["Gametocyte_Stage_Survival_Rate"].cast<float>();
+            base_gametocyte_sexratio = pset["Base_Gametocyte_Fraction_Male"].cast<float>();
+            base_gametocyte_production = pset["Base_Gametocyte_Production_Rate"].cast<float>();
+            antigen_switch_rate = pset["Antigen_Switch_Rate"].cast<float>();
+            merozoites_per_hepatocyte = pset["Merozoites_Per_Hepatocyte"].cast<float>();
+            merozoites_per_schizont = pset["Merozoites_Per_Schizont"].cast<float>();
+            RBC_destruction_multiplier = pset["RBC_Destruction_Multiplier"].cast<float>();
+            n_asexual_cycles_wo_gametocytes = pset["Number_Of_Asexual_Cycles_Without_Gametocytes"].cast<int>();
         }
     
     
@@ -484,7 +497,7 @@ namespace emodlib
 
         void Infection::malariaCheckInfectionStatus(float dt)
         {
-            
+            // TODO: toggle Infection::Cleared state change if zero hepatocytes + IRBC + gametocytes
         }
         
         suids::suid Infection::GetSuid() const

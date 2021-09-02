@@ -2,12 +2,7 @@
 
 
 #define CLONAL_PfEMP1_VARIANTS (50)
-
-#define DEFAULT_MSP_VARIANTS 100
-#define DEFAULT_NONSPECIFIC_TYPES 20
-#define DEFAULT_PFEMP1_VARIANTS 1000
 #define MINOR_EPITOPE_VARS_PER_SET 5
-
 
 #define INV_MICROLITERS_BLOOD_ADULT (1.0/5e6) // 5 liters of blood/adult (http://hypertextbook.com/facts/1998/LanNaLee.shtml)
 
@@ -34,5 +29,27 @@
 #define MIN_FEVER_DEGREES_KILLING (1.5)
 
 #define MEROZOITE_LIMITING_RBC_THRESHOLD (0.2)
-
 #define SWITCHING_IRBC_VARIANT_COUNT    (10)
+
+#define DEFAULT_MSP_VARIANTS 100
+#define DEFAULT_NONSPECIFIC_TYPES 20
+#define DEFAULT_PFEMP1_VARIANTS 1000
+
+#define DEFAULT_ANTIBODY_IRBC_KILLRATE      (2.0)
+#define DEFAULT_NON_SPECIFIC_ANTIGENICITY   (0.2)
+#define DEFAULT_MSP1_MEROZOITE_KILL         (0.5)
+#define DEFAULT_GAMETOCYTE_STAGE_SURVIVAL   (1.0)
+#define DEFAULT_BASE_GAMETOCYTE_SEX_RATIO   (0.2f)
+#define DEFAULT_BASE_GAMETOCYTE_PRODUCTION  (0.02f)
+#define DEFAULT_ANTIGEN_SWITCH_RATE         (2.0e-9f)
+#define DEFAULT_MEROZOITES_PER_HEPATOCYTE   (15000)
+#define DEFAULT_MEROZOITES_PER_SCHIZONT     (16)
+#define DEFAULT_RBC_DESTRUCTION_MULTIPLIER  (9.5)
+#define DEFAULT_ASEXUAL_CYCLES_WITHOUT_GAMETOCYTES (1)
+
+#define DEFAULT_ANTIBODY_CSP_DECAY_DAYS (90)
+#define DEFAULT_FEVER_IRBC_KILL_RATE    (0.15f)
+
+// TODO: enable infectiousness calculations
+//#define DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL   (0.01f) // For initialization of flags only-- See Eckhoff Intrahost paper for details of parameter
+//#define DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION    (0.02f) // For initialization of flags only-- See Eckhoff Intrahost paper for details of parameter

@@ -25,7 +25,7 @@ namespace emodlib
             
             struct params
             {
-                // Used by MalariaAntibody for Decay and Update functions
+                // Used in MalariaAntibody for boost-decay functions
                 static float memory_level;
                 static float hyperimmune_decay_rate;
                 static float MSP1_antibody_growthrate;
@@ -35,18 +35,26 @@ namespace emodlib
                 static float non_specific_growth;
                 static float antibody_csp_decay_days;
                 
-                // Used only by Susceptibility
+                // Used in Susceptibility for:
+                // ...maternal protection
                 // TODO: expose demographic initialization variables to Python layer and remove from C++
-                static bool enable_maternal_antibodies_transmission;
-                static MaternalAntibodiesType::Enum maternal_antibodies_type; // <--
-                static float maternal_antibody_protection;
+//                static bool enable_maternal_antibodies_transmission;
+//                static MaternalAntibodiesType::Enum maternal_antibodies_type; // <--
+//                static float maternal_antibody_protection;
                 static float maternal_antibody_decay_rate;
-                static InnateImmuneVariationType::Enum innate_immune_variation_type; // <--
-                static float base_gametocyte_mosquito_survival;
-                static float cytokine_gametocyte_inactivation;
-                static float erythropoiesis_anemia_effect;
+                
+                // ...innate immunity effects
+//                static InnateImmuneVariationType::Enum innate_immune_variation_type; // <--
                 static float pyrogenic_threshold;
                 static float fever_IRBC_killrate;
+                
+                // ... infectiousness calculations
+                // TODO: calculate outside of immune model -- or internalize calculation?
+//                static float base_gametocyte_mosquito_survival;
+//                static float cytokine_gametocyte_inactivation;
+                
+                // ... red blood cell effects
+                static float erythropoiesis_anemia_effect;
                 
                 static void Configure(const ParamSet& pset);
             };

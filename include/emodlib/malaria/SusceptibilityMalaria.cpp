@@ -21,29 +21,50 @@ namespace emodlib
     namespace malaria
     {
     
-        float  Susceptibility::params::memory_level                      = 0.0f;
+        float  Susceptibility::params::memory_level                      = 0.2f;
         float  Susceptibility::params::hyperimmune_decay_rate            = 0.0f;
-        float  Susceptibility::params::MSP1_antibody_growthrate          = 0.0f;
-        float  Susceptibility::params::antibody_stimulation_c50          = 0.0f;
-        float  Susceptibility::params::antibody_capacity_growthrate      = 0.0f;
-        float  Susceptibility::params::minimum_adapted_response          = 0.0f;
-        float  Susceptibility::params::non_specific_growth               = 0.0f;
-        float  Susceptibility::params::antibody_csp_decay_days           = 0.0f;
+        float  Susceptibility::params::MSP1_antibody_growthrate          = 0.02f;
+        float  Susceptibility::params::antibody_stimulation_c50          = 10.0f;
+        float  Susceptibility::params::antibody_capacity_growthrate      = 0.1f;
+        float  Susceptibility::params::minimum_adapted_response          = 0.02f;
+        float  Susceptibility::params::non_specific_growth               = 0.5f;
+        float  Susceptibility::params::antibody_csp_decay_days           = DEFAULT_ANTIBODY_CSP_DECAY_DAYS;
     
-        bool   Susceptibility::params::enable_maternal_antibodies_transmission  = false;
-        MaternalAntibodiesType::Enum Susceptibility::params::maternal_antibodies_type = MaternalAntibodiesType::OFF;
-        float  Susceptibility::params::maternal_antibody_protection      = 0.0f;
-        float  Susceptibility::params::maternal_antibody_decay_rate      = 0.0f;
-        InnateImmuneVariationType::Enum Susceptibility::params::innate_immune_variation_type = InnateImmuneVariationType::NONE;
-        float  Susceptibility::params::base_gametocyte_mosquito_survival = 1.0f;
-        float  Susceptibility::params::cytokine_gametocyte_inactivation  = 1.0f;
-        float  Susceptibility::params::erythropoiesis_anemia_effect      = 0.0f;
-        float  Susceptibility::params::pyrogenic_threshold               = 0.0f;
-        float  Susceptibility::params::fever_IRBC_killrate               = 0.0f;
+//        bool   Susceptibility::params::enable_maternal_antibodies_transmission  = false;
+//        MaternalAntibodiesType::Enum Susceptibility::params::maternal_antibodies_type = MaternalAntibodiesType::OFF;
+//        float  Susceptibility::params::maternal_antibody_protection      = 0.1f;
+        float  Susceptibility::params::maternal_antibody_decay_rate      = 0.01f;
+    
+//        InnateImmuneVariationType::Enum Susceptibility::params::innate_immune_variation_type = InnateImmuneVariationType::NONE;
+        float  Susceptibility::params::pyrogenic_threshold               = 1000.0f;
+        float  Susceptibility::params::fever_IRBC_killrate               = DEFAULT_FEVER_IRBC_KILL_RATE;
+    
+//        float  Susceptibility::params::base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
+//        float  Susceptibility::params::cytokine_gametocyte_inactivation  = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
+  
+        float  Susceptibility::params::erythropoiesis_anemia_effect      = 3.5f;
+
     
         void Susceptibility::params::Configure(const ParamSet& pset)
         {
+            memory_level = pset["Antibody_Memory_Level"].cast<float>();
+            hyperimmune_decay_rate = -log((0.4f - memory_level) / (1.0f - memory_level)) / 120.0f;  // This sets the decay rate towards memory level so that the decay from antibody levels of 1 to levels of 0.4 is consistent
+            MSP1_antibody_growthrate = pset["Max_MSP1_Antibody_Growthrate"].cast<float>();
+            antibody_stimulation_c50 = pset["Antibody_Stimulation_C50"].cast<float>();
+            antibody_capacity_growthrate = pset["Antibody_Capacity_Growth_Rate"].cast<float>();
+            minimum_adapted_response = pset["Min_Adapted_Response"].cast<float>();
+            non_specific_growth = pset["Nonspecific_Antibody_Growth_Rate_Factor"].cast<float>();
+            antibody_csp_decay_days = pset["Antibody_CSP_Decay_Days"].cast<float>();
 
+            maternal_antibody_decay_rate = pset["Maternal_Antibody_Decay_Rate"].cast<float>();
+            
+            pyrogenic_threshold = pset["Pyrogenic_Threshold"].cast<float>();
+            fever_IRBC_killrate = pset["Fever_IRBC_Kill_Rate"].cast<float>();
+
+//            base_gametocyte_mosquito_survival = pset["Base_Gametocyte_Mosquito_Survival_Rate"].cast<float>();
+//            cytokine_gametocyte_inactivation = pset["Cytokine_Gametocyte_Inactivation"].cast<float>();
+
+            erythropoiesis_anemia_effect = pset["Erythropoiesis_Anemia_Effect"].cast<float>();
         }
     
     
@@ -89,6 +110,8 @@ namespace emodlib
             // Track individual pyrogenic thresholds + fever killing rates as instance variables
             m_ind_pyrogenic_threshold = params::pyrogenic_threshold;
             m_ind_fever_kill_rate = params::fever_IRBC_killrate;
+            
+            // TODO: maternal antibodies were being set deep in Node.cpp base class for explicit mother-to-child link
             
             m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(0);
 

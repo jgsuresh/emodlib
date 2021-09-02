@@ -25,10 +25,13 @@ namespace emodlib
     
         void IntrahostComponent::params::Configure(const ParamSet& pset)
         {
-            // TODO: configure top-level params
-            
+            randomSeed = pset["Run_Number"].cast<int>();
             IntrahostComponent::p_rng = std::shared_ptr<RANDOMBASE>(new PSEUDO_DES(randomSeed, 256));
             
+            falciparumMSPVars = pset["Falciparum_MSP_Variants"].cast<int>();
+            falciparumNonSpecTypes = pset["Falciparum_Nonspecific_Types"].cast<int>();
+            falciparumPfEMP1Vars = pset["Falciparum_PfEMP1_Variants"].cast<int>();
+
             Infection::params::Configure(pset["infection_params"]);
             Susceptibility::params::Configure(pset["susceptibility_params"]);
         }
