@@ -64,7 +64,9 @@ namespace emodlib
             double get_RBC_availability() const;
             float get_fever() const;
             float get_fever_celsius() const;
-
+            float get_fever_killing_rate() const;
+            float get_maternal_antibodies() const;
+            
             
         private:
 

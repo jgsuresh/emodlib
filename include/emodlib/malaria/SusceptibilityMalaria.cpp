@@ -390,6 +390,16 @@ namespace emodlib
             return 37.0f + get_fever();
         }
 
+        float Susceptibility::get_fever_killing_rate() const
+        {
+            return m_ind_fever_kill_rate;
+        }
+
+        float Susceptibility::get_maternal_antibodies() const
+        {
+            return m_maternal_antibody_strength;
+        }
+    
     }
 
 }

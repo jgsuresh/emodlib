@@ -10,6 +10,7 @@
 #include <numeric>
 
 #include "emodlib/utils/Common.h"
+#include "emodlib/utils/Sigmoid.h"
 
 #include "IntrahostComponent.h"
 #include "SusceptibilityMalaria.h"
@@ -185,7 +186,7 @@ namespace emodlib
             // check for valid inputs
             if (dt > 0 && immunity && m_hepatocytes > 0)
             {
-                // TODO: drug killing goes here
+                // TODO: hepatocyte drug killing goes here
                 
                 // ----------------------------------------------------------------------------------------------------------------------
                 // --- latency in hepatocyte phase Collins, W. E. and G. M. Jeffery (1999).
@@ -365,14 +366,87 @@ namespace emodlib
             }
         }
     
+        // Calculates stimulation of immune system by malaria infection
         void Infection::malariaImmuneStimulation(float dt)
         {
+            // check for valid inputs
+            if ( dt <= 0 || immunity == nullptr )
+            {
+                std::cout << "Invalid input to malariaImmuneStimulation" << std::endl;
+                return;
+            }
             
+            // antibody capacity for MSP 1 and MSP-2 are above
+            // antibody capacity for the different RBC surface variants
+            // transfer total IRBC to array owned by Susceptibility_Malaria, which then calculates total immune stimulation by all concurrent infections
+            #pragma loop(hint_parallel(8))
+            for (int i = 0; i < CLONAL_PfEMP1_VARIANTS; i++)
+            {
+                if (m_IRBC_count[i] < 0)
+                {
+                    m_IRBC_count[i] = 0;
+                    std::cout << "malariaImmuneStimulation() IRBC count at index" << i << "should not be negative" << std::endl;
+                }
+
+                // only update if there are actually IRBCs
+                if (m_IRBC_count[i] > 0)
+                {
+                    // PfEMP-1 major epitopes
+                    m_PfEMP1_antibodies[i].major->IncreaseAntigenCount(m_IRBC_count[i]);
+
+                    // PfEMP-1 minor epitopes
+                    m_PfEMP1_antibodies[i].minor->IncreaseAntigenCount(m_IRBC_count[i]);
+
+                    // Notify susceptibility that there is antigen present
+                    immunity->SetAntigenPresent();
+                }
+            }
         }
         
+        // Calculates the IRBC killing from drugs and immune action
         void Infection::malariaImmunityIRBCKill(float dt)
         {
-            
+            // check for valid inputs
+            if (dt > 0 && immunity)
+            {
+                // inflammatory response--Stevenson, M. M. and E. M. Riley (2004).
+                // "Innate immunity to malaria." Nat Rev Immunol 4(3): 169-180.
+
+                // Offset basic sigmoid: effect rises as basic sigmoid beginning from a fever of MIN_FEVER_DEGREES_KILLING
+                double fever_cytokine_killrate = (immunity->get_fever() > MIN_FEVER_DEGREES_KILLING) ? immunity->get_fever_killing_rate() * Sigmoid::basic_sigmoid(1.0, immunity->get_fever() - MIN_FEVER_DEGREES_KILLING) : 0.0;
+                
+                // TODO: gametocyte drug killing goes here
+                double drug_killrate = 0;
+
+                #pragma loop(hint_parallel(8))
+                for (int i = 0; i < CLONAL_PfEMP1_VARIANTS; i++)
+                {
+                    if ( m_IRBC_count[i] == 0 ) continue; // don't need to estimate killing if there are no IRBC of this variant to kill!
+
+                    // total = antibodies (major, minor, maternal) + fever + drug
+                    double pkill = EXPCDF(-dt * ( (m_PfEMP1_antibodies[i].major->GetAntibodyConcentration() + Infection::params::non_specific_antigenicity * m_PfEMP1_antibodies[i].minor->GetAntibodyConcentration() + immunity->get_maternal_antibodies() ) * Infection::params::antibody_IRBC_killrate + fever_cytokine_killrate + drug_killrate));
+                    
+                    // Now here there is an interesting issue: to save massive amounts of computational time, can use a Gaussian approximation for the true binomial, but this returns a float
+                    // This is fine for large numbers of killed IRBC's, but an issue arises for small numbers
+                    // big question, is 1.5 killed IRBC's 1 or 2 killed?
+
+                    double tempval1 = m_IRBC_count[i] * pkill;
+                    if ( tempval1 > 0 ) // don't need to smear the killing by a random number if it is going to be zero
+                        tempval1 = IntrahostComponent::p_rng->eGauss() * sqrt(tempval1 * (1.0 - pkill)) + tempval1;
+
+                    if (tempval1 < 0.5)
+                        tempval1 = 0;
+
+
+                    // so add a continuity correction 0.5, and then convert to integer
+                    m_IRBC_count[i] -= int64_t(tempval1 + 0.5);
+
+                    if (m_IRBC_count[i] < 1)
+                        m_IRBC_count[i] = 0;   // check for too large a time step
+
+                }
+            }
+
         }
     
         void Infection::malariaImmunityGametocyteKill(float dt)
