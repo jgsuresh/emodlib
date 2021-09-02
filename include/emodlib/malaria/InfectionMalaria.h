@@ -32,6 +32,7 @@ namespace emodlib
 //                static ParasiteSwitchType::Enum parasite_switch_type;
 //                static MalariaStrains::Enum     malaria_strains;
 
+                static float incubation_period;
                 static float antibody_IRBC_killrate;
                 static float MSP1_merozoite_kill;
                 static float gametocyte_stage_survival;

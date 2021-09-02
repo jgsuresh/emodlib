@@ -24,6 +24,7 @@ namespace emodlib
 //        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
 //        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
+        float Infection::params::incubation_period = 0.0f; // liver stage duration
         float Infection::params::antibody_IRBC_killrate = 0.0f;
         float Infection::params::MSP1_merozoite_kill = 0.0f;
         float Infection::params::gametocyte_stage_survival = 0.0f;
@@ -181,7 +182,38 @@ namespace emodlib
 
         void Infection::malariaProcessHepatocytes(float dt)
         {
-            
+            // check for valid inputs
+            if (dt > 0 && immunity && m_hepatocytes > 0)
+            {
+                // TODO: drug killing goes here
+                
+                // ----------------------------------------------------------------------------------------------------------------------
+                // --- latency in hepatocyte phase Collins, W. E. and G. M. Jeffery (1999).
+                // --- "A retrospective examination of sporozoite- and trophozoite-induced infections with Plasmodium falciparum:
+                // --- development of parasitologic and clinical immunity during primary infection." Am J Trop Med Hyg 61(1 Suppl): 4-19.
+                // --- process start of asexual phase if the incubation period is over and there are still hepatocytes
+                // ----------------------------------------------------------------------------------------------------------------------
+                if (m_asexual_phase == AsexualCycleStatus::NoAsexualCycle &&
+                     m_liver_stage_timer >= Infection::params::incubation_period)
+                {
+                    m_IRBC_count.assign(CLONAL_PfEMP1_VARIANTS, 0);
+
+                    // testing starting with multiple antigens, which reduces the probability of a single first variant being cleared by a pre-existing antibody response
+                    // picked starting with 5 variants after exploring different options in work developing Intrahost model
+                    const int INITIAL_PFEMP1_VARIANTS = 5;
+                    #pragma loop(hint_parallel(8))
+                    for ( int i=0; i<INITIAL_PFEMP1_VARIANTS; i++ )
+                    {
+                        m_IRBC_count[i] = int64_t(m_hepatocytes * Infection::params::merozoites_per_hepatocyte / INITIAL_PFEMP1_VARIANTS);
+                        immunity->UpdateActiveAntibody( m_PfEMP1_antibodies[i], m_minor_epitope_type[i], m_IRBCtype[i] ); // insert into set of antigens the immune system has ever "seen"
+                    }
+
+                    // now back to normal
+                    m_hepatocytes   = 0;
+                    m_IRBCtimer     = 2.0;  // P. falciparum has a 2-day asexual cycle
+                    m_asexual_phase = AsexualCycleStatus::HepatocyteRelease;    // HepatocyteRelease means the asexual cycle is just beginning, so that the IRBCtimer is not decremented in the same time step
+                }
+            }
         }
     
         void Infection::processEndOfAsexualCycle()
