@@ -415,7 +415,7 @@ namespace emodlib
                 // Offset basic sigmoid: effect rises as basic sigmoid beginning from a fever of MIN_FEVER_DEGREES_KILLING
                 double fever_cytokine_killrate = (immunity->get_fever() > MIN_FEVER_DEGREES_KILLING) ? immunity->get_fever_killing_rate() * Sigmoid::basic_sigmoid(1.0, immunity->get_fever() - MIN_FEVER_DEGREES_KILLING) : 0.0;
                 
-                // TODO: gametocyte drug killing goes here
+                // TODO: asexual-stage drug killing goes here
                 double drug_killrate = 0;
 
                 #pragma loop(hint_parallel(8))
@@ -449,9 +449,37 @@ namespace emodlib
 
         }
     
+        // Calculates immature gametocyte killing from drugs and immune action
         void Infection::malariaImmunityGametocyteKill(float dt)
         {
-            
+            // check for valid inputs
+            if (dt > 0 && immunity)
+            {
+                #pragma loop(hint_parallel(8))
+                for (int i = 0; i < GametocyteStages::Mature; i++)
+                {
+                    // Currently have fever and inflammatory cytokines limiting infectivity,
+                    // rather than killing gametocytes.  See IndividualHumanMalaria::DepositInfectiousnessFromGametocytes()
+                    // We leave this variable here at zero incase we change DepositInfectiousnessFromGametocytes()
+                    double fever_cytokine_killrate = 0; // 0 = don't kill due to fever
+
+                    // TODO: gametocyte drug killing goes here
+                    double drug_killrate = 0;
+                    
+                    // no randomness in gametocyte killing, but a continuity correction
+                    double gametocyte_kill_fraction = EXPCDF( -dt * (fever_cytokine_killrate + drug_killrate) );
+
+                    m_malegametocytes[i] -= int64_t( 0.5 + m_malegametocytes[i] * gametocyte_kill_fraction );
+                    if (m_malegametocytes[i] < 1)
+                        m_malegametocytes[i] = 0;
+
+                    m_femalegametocytes[i] -= int64_t( 0.5 + m_femalegametocytes[i] * gametocyte_kill_fraction );
+                    if (m_femalegametocytes[i] < 1)
+                        m_femalegametocytes[i] = 0;
+                }
+
+                // mature gametocytes die as part Individual_Malaria::getinfectiousness()
+            }
         }
 
         void Infection::malariaCheckInfectionStatus(float dt)
