@@ -55,9 +55,13 @@ namespace emodlib
             static Susceptibility *Create();
             IMalariaAntibody* RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity=0.0f);
             
-            void Update();
-
-            float GetFeverTemperature() const;
+            void Update(float dt);
+            void SetAntigenPresent();
+            
+            long long get_RBC_count() const;
+            double get_RBC_availability() const;
+            float get_fever() const;
+            float get_fever_celsius() const;
 
             
         private:
@@ -84,15 +88,18 @@ namespace emodlib
             float m_ind_fever_kill_rate;
             float m_cytokine_stimulation;
             float m_parasite_density;
-            
-            float fever_temperature;
-            
+                        
             
             Susceptibility();
-            
             // TODO: expose heterogeneity initialization + interaction with DemographicComponent via Python layer
             void Initialize();  // <-- original base class: Initialize(age, immmod, riskmod)
-            void  recalculateBloodCapacity( float _age );
+            
+            void recalculateBloodCapacity( float _age );
+            void updateImmunityCSP( float dt );
+            void updateImmunityMSP( float dt, float& temp_cytokine_stimulation );
+            void updateImmunityPfEMP1Minor( float dt );
+            void updateImmunityPfEMP1Major( float dt );
+            void decayAllAntibodies( float dt );
             
         };
 

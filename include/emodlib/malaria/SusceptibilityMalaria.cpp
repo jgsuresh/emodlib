@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "emodlib/utils/Common.h"
+#include "emodlib/utils/Sigmoid.h"
 #include "Malaria.h"
 
 #include "MalariaAntibody.h"
@@ -66,8 +67,6 @@ namespace emodlib
             , m_ind_fever_kill_rate(0.0f)
             , m_cytokine_stimulation(0.0f)
             , m_parasite_density(0.0f)
-    
-            , fever_temperature(37.0f)
         {
 
         }
@@ -145,9 +144,78 @@ namespace emodlib
             return antibody;
         }
     
-        void Susceptibility::Update()
+        void Susceptibility::Update(float dt)
         {
+            age += dt;
+            
+            recalculateBloodCapacity(age);
+            
+            // Red blood cell dynamics
+            if (Susceptibility::params::erythropoiesis_anemia_effect > 0)
+            {
+                // This is the amount of "erythropoietin", assume absolute amounts of erythropoietin correlate linearly with absolute increases in hemoglobin
+                float anemia_erythropoiesis_multiplier = exp( Susceptibility::params::erythropoiesis_anemia_effect * (1 - get_RBC_availability()) );
+                m_RBC = int64_t(m_RBC - (m_RBC * .00833 - m_RBCproduction * anemia_erythropoiesis_multiplier) * dt); // *.00833 ==/120 (AVERAGE_RBC_LIFESPAN)
+            }
+            else
+            {
+                m_RBC = int64_t(m_RBC - (m_RBC * .00833 - m_RBCproduction) * dt); // *.00833 ==/120 (AVERAGE_RBC_LIFESPAN)
+            }
+            
+            // Cytokines decay with time constant of 12 hours
+            m_cytokines -= (m_cytokines * 2 * dt);
+            if (m_cytokines < 0) { m_cytokines = 0; }
+            
+            // Reset parasite density
+            m_parasite_density = 0; // this is accumulated in updateImmunityPfEMP1Minor
 
+            // decay maternal antibodies
+            m_maternal_antibody_strength -= dt * m_maternal_antibody_strength * Susceptibility::params::maternal_antibody_decay_rate;
+            if ( m_maternal_antibody_strength < 0 ) { m_maternal_antibody_strength = 0; }
+
+            // antibody capacities increase and antibodies released if antigen present, only process if antigens are present at all
+            // concept of antibody stimulation threshold seen in other models--(Molineaux, Diebner et al. 2001; Paget-McNicol, Gatton et al. 2002; Dietz, Raddatz et al. 2006)
+            // first CSP, then rest (but only process rest if there is an active infection), have to process CSP every time step
+            updateImmunityCSP(dt);
+            
+            // now all other antigens
+            if ( !m_antigenic_flag )
+            {
+                // NO ANTIGENS.  All antibodies decay to zero and all antibody_capacities decay towards 0.3
+                decayAllAntibodies(dt);
+            }
+            else
+            {
+                // Update antigen-antibody reactions for MSP and PfEMP1 minor/major epitopes, including cytokine stimulation
+                float temp_cytokine_stimulation = 0; // used to track total stimulation of cytokines due to rupturing schizonts
+                updateImmunityMSP(dt, temp_cytokine_stimulation);
+                updateImmunityPfEMP1Minor(dt);
+                updateImmunityPfEMP1Major(dt);
+                
+                // inflammatory immune response--Stevenson, M. M. and E. M. Riley (2004). "Innate immunity to malaria." Nat Rev Immunol 4(3): 169-180.
+                // now let cytokine be increased in response to IRBCs and ruptured schizonts, if any
+                // pyrogenic threshold similar to previous models--(Molineaux, Diebner et al. 2001; Paget-McNicol, Gatton et al. 2002; Maire, Smith et al. 2006)
+                m_cytokines = float(m_cytokines + CYTOKINE_STIMULATION_SCALE * Sigmoid::basic_sigmoid(m_ind_pyrogenic_threshold, m_cytokine_stimulation) * dt * 2);//12-hour time constant
+                m_cytokines = float(m_cytokines + CYTOKINE_STIMULATION_SCALE * Sigmoid::basic_sigmoid(m_ind_pyrogenic_threshold, temp_cytokine_stimulation));//one time spike for rupturing schizonts
+                m_cytokine_stimulation = 0; // and reset for next time step
+
+                // reset antigenic presence and IRBC counters
+                m_antigenic_flag = 0;
+                for (auto antibody : m_active_MSP_antibodies)
+                {
+                    antibody->ResetCounters();
+                }
+
+                for (auto antibody : m_active_PfEMP1_minor_antibodies)
+                {
+                    antibody->ResetCounters();
+                }
+
+                for (auto antibody : m_active_PfEMP1_major_antibodies)
+                {
+                    antibody->ResetCounters();
+                }
+            }
         }
 
         void Susceptibility::recalculateBloodCapacity( float _age )
@@ -172,9 +240,56 @@ namespace emodlib
             m_RBCcapacity = m_RBCproduction * AVERAGE_RBC_LIFESPAN;  // Health equilibrium of RBC is production*lifetime.  This is the total number of RBC per human
         }
     
-        float Susceptibility::GetFeverTemperature() const
+        void Susceptibility::updateImmunityCSP( float dt )
         {
-            return fever_temperature;
+            
+        }
+        
+        void Susceptibility::updateImmunityMSP( float dt, float& temp_cytokine_stimulation )
+        {
+            
+        }
+        
+        void Susceptibility::updateImmunityPfEMP1Minor( float dt )
+        {
+            
+        }
+        
+        void Susceptibility::updateImmunityPfEMP1Major( float dt )
+        {
+            
+        }
+        
+        void Susceptibility::decayAllAntibodies( float dt )
+        {
+            
+        }
+    
+        void Susceptibility::SetAntigenPresent()
+        {
+            m_antigenic_flag = 1;
+        }
+    
+        long long Susceptibility::get_RBC_count() const
+        {
+            return m_RBC;
+        }
+
+        double Susceptibility::get_RBC_availability() const
+        {
+            return (m_RBCcapacity > 0) ? (double(m_RBC) / m_RBCcapacity) : 0.0;
+        }
+    
+        // Fever tracks the level of cytokines
+        // This changes a limited cytokine range to more closely match the range of fevers experienced by patients
+        float Susceptibility::get_fever() const
+        {
+            return FEVER_DEGREES_CELSIUS_PER_UNIT_CYTOKINES * m_cytokines;
+        }
+    
+        float Susceptibility::get_fever_celsius() const
+        {
+            return 37.0f + get_fever();
         }
 
     }

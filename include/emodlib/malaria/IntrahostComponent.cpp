@@ -48,12 +48,12 @@ namespace emodlib
             return ic;
         }
 
-        void IntrahostComponent::Update()
+        void IntrahostComponent::Update(float dt)
         {
-            susceptibility->Update();
+            susceptibility->Update(dt);
 
             for (auto* inf : infections) {
-                inf->Update();
+                inf->Update(dt);
             }
         }
 
@@ -88,7 +88,7 @@ namespace emodlib
 
         float IntrahostComponent::GetFeverTemperature() const
         {
-            return susceptibility->GetFeverTemperature();
+            return susceptibility->get_fever_celsius();
         }
 
     }

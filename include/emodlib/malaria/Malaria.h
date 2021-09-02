@@ -28,3 +28,6 @@
 
 #define AVERAGE_RBC_LIFESPAN        (120)     // days
 #define AVERAGE_RBC_CONCENTRATION   (5e6)     // RBC/microliter
+
+#define FEVER_DEGREES_CELSIUS_PER_UNIT_CYTOKINES (4)
+#define CYTOKINE_STIMULATION_SCALE (1.0)

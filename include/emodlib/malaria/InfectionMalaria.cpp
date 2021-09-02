@@ -6,6 +6,8 @@
 
 #include "InfectionMalaria.h"
 
+#include <iostream>
+
 #include "IntrahostComponent.h"
 #include "SusceptibilityMalaria.h"
 
@@ -44,11 +46,7 @@ namespace emodlib
         Infection::Infection()
             : suid(suids::nil_suid())
     
-            , duration(0.0f)
-            , total_duration(0.0f)
-            , incubation_timer(0.0f)
-            , infectious_timer(0.0f)
-    
+            , m_liver_stage_timer(0.0f)
             , m_IRBCtimer(0.0)
             , m_hepatocytes(0)
             , m_asexual_phase(AsexualCycleStatus::NoAsexualCycle)
@@ -68,9 +66,7 @@ namespace emodlib
     
             , m_gametorate(0.0)
             , m_gametosexratio(0.0)
-    
-            , m_inv_microliters_blood(INV_MICROLITERS_BLOOD_ADULT)
-    
+        
             , susceptibility(nullptr)
     
             , parasite_density(0)
@@ -126,15 +122,93 @@ namespace emodlib
             }
         }
     
-        void Infection::Update()
+        void Infection::Update(float dt)
         {
+            m_liver_stage_timer += dt;  // increment latent period
+            
+            if (m_hepatocytes > 0)
+            {
+                malariaProcessHepatocytes(dt);
+            }
+            
+            if (m_asexual_phase > AsexualCycleStatus::NoAsexualCycle)
+            {
+                // do not decrement timer if it was just set by the hepatocytes this time step (asexual_phase==2), or else the timer gets decreased one timestep too many
+                if (m_asexual_phase == AsexualCycleStatus::HepatocyteRelease)
+                {
+                    m_asexual_phase = AsexualCycleStatus::AsexualCycle;
+                }
+                else
+                {
+                    m_IRBCtimer -= dt;
+                }
 
+                // process end of asexual cycle events if appropriate
+                if (m_IRBCtimer <= 0)
+                {
+                    processEndOfAsexualCycle();
+                }
+
+                // check for death due to death of all RBCs
+                if (susceptibility->get_RBC_count() < 1)
+                {
+                    std::cout << "Individual has no more red-blood cells";
+                    throw;  // TODO: gracefully kill this individual?
+                }
+
+                // Immune Interaction
+                // Infection Effect on Immune System--
+                // in Susceptibility object update, antibody capacities increase and antibodies produced in response to antigenic-specific parasite load, tolerance--lack of inflamatory response-- develops
+                malariaImmuneStimulation(dt);
+
+                // Immune and Drug Effects on Infection
+                malariaImmunityIRBCKill(dt);
+
+                // Immune and Drug Effects on Gametocytes
+                malariaImmunityGametocyteKill(dt);
+
+                //make sure MSP type generates antibodies during an ongoing infection, not just during the short time of IRBC rupturing, since the stimulation may persist
+                m_MSP_antibody->IncreaseAntigenCount(1);
+                susceptibility->SetAntigenPresent(); // NOTE: this has an interesting behavior in that it continues to update MSP capacity AFTER there are no IRBC (only gametocytes)
+            }
+
+            // check for death, clearance, and take care of end-of-timestep bookkeeping
+            malariaCheckInfectionStatus(dt);
         }
 
+        void Infection::malariaProcessHepatocytes(float dt)
+        {
+            
+        }
+    
+        void Infection::processEndOfAsexualCycle()
+        {
+            
+        }
+    
+        void Infection::malariaImmuneStimulation(float dt)
+        {
+            
+        }
+        
+        void Infection::malariaImmunityIRBCKill(float dt)
+        {
+            
+        }
+    
+        void Infection::malariaImmunityGametocyteKill(float dt)
+        {
+            
+        }
+
+        void Infection::malariaCheckInfectionStatus(float dt)
+        {
+            
+        }
+        
         suids::suid Infection::GetSuid() const
         {
             return suid;
-            
         }
     
         float Infection::GetParasiteDensity() const

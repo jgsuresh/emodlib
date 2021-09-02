@@ -53,7 +53,7 @@ namespace emodlib
             
             static Infection *Create(Susceptibility* _susceptibility, int initial_hepatocytes=1);
             
-            void Update();
+            void Update(float dt);
 
             suids::suid GetSuid() const;
             float GetParasiteDensity() const;
@@ -64,11 +64,7 @@ namespace emodlib
 
             suids::suid suid; // unique id of this infection within the system
             
-            float duration;   // local timer
-            float total_duration;
-            float incubation_timer;
-            float infectious_timer;
-            
+            float m_liver_stage_timer;
             double m_IRBCtimer;
             int32_t m_hepatocytes;
             AsexualCycleStatus::Enum m_asexual_phase;
@@ -89,17 +85,22 @@ namespace emodlib
             // govern distribution of next merozoites -- TODO: why are these not in Params?
             double m_gametorate;
             double m_gametosexratio;
-            
-            double m_inv_microliters_blood;   // tracks blood volume based on age
-            
+                        
             Susceptibility* susceptibility;  // TODO: link on Infection::Create(Susceptibility*) do we like this?
             
-            float parasite_density;
+            float parasite_density;  // TODO: remove placeholders when actual calculations are in place
             float gametocyte_density;
             
             
             Infection();
             void Initialize(Susceptibility* _susceptibility, int initial_hepatocytes);
+            
+            void malariaProcessHepatocytes(float dt);
+            void processEndOfAsexualCycle();
+            void malariaImmuneStimulation(float dt);
+            void malariaImmunityIRBCKill(float dt);
+            void malariaImmunityGametocyteKill(float dt);
+            void malariaCheckInfectionStatus(float dt);  // TODO: give a more accurate name like EndUpdate()
         };
 
     }

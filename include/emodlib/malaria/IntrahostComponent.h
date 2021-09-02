@@ -43,7 +43,7 @@ namespace emodlib
             
             static IntrahostComponent* Create();
 
-            void Update();
+            void Update(float dt);
 
             void Challenge();
             void Treat();
