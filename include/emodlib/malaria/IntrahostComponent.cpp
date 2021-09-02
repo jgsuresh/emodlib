@@ -53,6 +53,8 @@ namespace emodlib
 
         void IntrahostComponent::Update(float dt)
         {
+            // TODO: include mature gametocyte decay + kill somewhere
+            
             susceptibility->Update(dt);
 
             for (auto* inf : infections) {
@@ -63,12 +65,12 @@ namespace emodlib
         void IntrahostComponent::Challenge()
         {
             Infection* inf = Infection::Create(susceptibility);
-            infections.push_back(inf);
+            infections.push_back(inf);  // TODO: Max_Individual_Infections limit
         }
 
         void IntrahostComponent::Treat()
         {
-            infections.clear();
+            infections.clear();  // TODO: drug-based asexual clearance + slow gametocyte decay
         }
 
         float IntrahostComponent::GetParasiteDensity() const

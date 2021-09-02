@@ -28,7 +28,10 @@ void add_malaria_bindings(py::module& m) {
                     "Configure the component from a ParamSet dictionary",
                     "pset"_a)
     
-        .def("update", &IntrahostComponent::Update)
+        .def("update",
+             &IntrahostComponent::Update,
+             "Update the intrahost model state by dt",
+             "dt"_a)
     
         .def("challenge",
              &IntrahostComponent::Challenge,
