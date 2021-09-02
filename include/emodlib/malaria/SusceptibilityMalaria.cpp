@@ -144,6 +144,24 @@ namespace emodlib
             return antibody;
         }
     
+        void Susceptibility::UpdateActiveAntibody( pfemp1_antibody_t &pfemp1_variant, int minor_variant, int major_variant )
+        {
+            if(pfemp1_variant.minor == nullptr)
+            {
+                pfemp1_variant.minor = RegisterAntibody(MalariaAntibodyType::PfEMP1_minor, minor_variant);
+            }
+
+            if(pfemp1_variant.major == nullptr)
+            {
+                pfemp1_variant.major = RegisterAntibody(MalariaAntibodyType::PfEMP1_major, major_variant);
+            }
+        }
+    
+        void Susceptibility::remove_RBCs(int64_t infectedAsexual, int64_t infectedGametocytes, double RBC_destruction_multiplier)
+        {
+            m_RBC -= ( int64_t(infectedAsexual*RBC_destruction_multiplier) + infectedGametocytes );
+        }
+    
         void Susceptibility::Update(float dt)
         {
             age += dt;

@@ -7,6 +7,9 @@
 #include "InfectionMalaria.h"
 
 #include <iostream>
+#include <numeric>
+
+#include "emodlib/utils/Common.h"
 
 #include "IntrahostComponent.h"
 #include "SusceptibilityMalaria.h"
@@ -18,7 +21,7 @@ namespace emodlib
     namespace malaria
     {
 
-        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
+//        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
 //        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
         float Infection::params::antibody_IRBC_killrate = 0.0f;
@@ -67,7 +70,7 @@ namespace emodlib
             , m_gametorate(0.0)
             , m_gametosexratio(0.0)
         
-            , susceptibility(nullptr)
+            , immunity(nullptr)
     
             , parasite_density(0)
             , gametocyte_density(0)
@@ -105,9 +108,9 @@ namespace emodlib
                 m_minor_epitope_type[i] = rng->uniformZeroToN16(MINOR_EPITOPE_VARS_PER_SET) + MINOR_EPITOPE_VARS_PER_SET * m_nonspectype;
             }
             
-            susceptibility = _susceptibility;
+            immunity = _susceptibility;
             
-            m_MSP_antibody = susceptibility->RegisterAntibody(MalariaAntibodyType::MSP1, m_MSPtype);
+            m_MSP_antibody = immunity->RegisterAntibody(MalariaAntibodyType::MSP1, m_MSPtype);
             
             for( int ivariant = 0; ivariant < m_PfEMP1_antibodies.size(); ivariant++ )
             {
@@ -116,8 +119,8 @@ namespace emodlib
 
                 if ( m_IRBC_count[ivariant] > 0 )
                 {
-                    m_PfEMP1_antibodies[ivariant].minor  = susceptibility->RegisterAntibody(MalariaAntibodyType::PfEMP1_minor, m_minor_epitope_type[ivariant]);
-                    m_PfEMP1_antibodies[ivariant].major  = susceptibility->RegisterAntibody(MalariaAntibodyType::PfEMP1_major, m_IRBCtype[ivariant]);
+                    m_PfEMP1_antibodies[ivariant].minor  = immunity->RegisterAntibody(MalariaAntibodyType::PfEMP1_minor, m_minor_epitope_type[ivariant]);
+                    m_PfEMP1_antibodies[ivariant].major  = immunity->RegisterAntibody(MalariaAntibodyType::PfEMP1_major, m_IRBCtype[ivariant]);
                 }
             }
         }
@@ -150,7 +153,7 @@ namespace emodlib
                 }
 
                 // check for death due to death of all RBCs
-                if (susceptibility->get_RBC_count() < 1)
+                if (immunity->get_RBC_count() < 1)
                 {
                     std::cout << "Individual has no more red-blood cells";
                     throw;  // TODO: gracefully kill this individual?
@@ -169,7 +172,7 @@ namespace emodlib
 
                 //make sure MSP type generates antibodies during an ongoing infection, not just during the short time of IRBC rupturing, since the stimulation may persist
                 m_MSP_antibody->IncreaseAntigenCount(1);
-                susceptibility->SetAntigenPresent(); // NOTE: this has an interesting behavior in that it continues to update MSP capacity AFTER there are no IRBC (only gametocytes)
+                immunity->SetAntigenPresent(); // NOTE: this has an interesting behavior in that it continues to update MSP capacity AFTER there are no IRBC (only gametocytes)
             }
 
             // check for death, clearance, and take care of end-of-timestep bookkeeping
@@ -183,7 +186,151 @@ namespace emodlib
     
         void Infection::processEndOfAsexualCycle()
         {
+            // Merozoite-specific antibodies can limit merozoite success--Blackman, M. J., H. G. Heidrich, et al. (1990).
+            // "A single fragment of a malaria merozoite surface protein remains on the parasite during red cell invasion
+            // and is the target of invasion-inhibiting antibodies." J Exp Med 172(1): 379-382.
+            double RBCavailability = immunity->get_RBC_availability();
+
+            // Merozoite survival limited at very low density according to density-dependent probability-of-success formula
+            double merozoitesurvival = std::max(0.0, (1.0 - Infection::params::MSP1_merozoite_kill * m_MSP_antibody->GetAntibodyConcentration() ) * EXPCDF(-RBCavailability / MEROZOITE_LIMITING_RBC_THRESHOLD));
             
+            // How many rupture for this infection handed to suscept object for total stimulation calculations
+            int64_t totalIRBC = 0;
+            totalIRBC = std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
+            m_MSP_antibody->IncreaseAntigenCount( totalIRBC );
+
+            // Move immature gametocytes forward a stage and create initial stage gametocytes from previous merozoites
+            // This is the last function to use m_IRBC_count from the previous cycle
+            malariaCycleGametocytes(merozoitesurvival);
+
+            // Calculate antigenic switching and create asexual IRBCss for next asexual cycle
+            // After this function, m_IRBC_count will have been updated
+            malariaIRBCAntigenSwitch(merozoitesurvival);
+            
+            totalIRBC = 0;
+            //std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
+            #pragma loop(hint_parallel(8))
+            for ( int j = 0; j < CLONAL_PfEMP1_VARIANTS; j++ )
+            {
+                if ( m_IRBC_count[j] > 0 )
+                {
+                    totalIRBC += m_IRBC_count[j];
+                    immunity->UpdateActiveAntibody( m_PfEMP1_antibodies[j], m_minor_epitope_type[j], m_IRBCtype[j] ); // insert into set of antigens the immune system has ever "seen"
+                }
+            }
+
+            // Uninfected RBC killing diminishing in proportion to RBC availability
+            double destruction_factor_ = std::max(1.0, Infection::params::RBC_destruction_multiplier * EXPCDF(-RBCavailability / MEROZOITE_LIMITING_RBC_THRESHOLD) );
+            immunity->remove_RBCs( totalIRBC, m_malegametocytes[0] + m_femalegametocytes[0], destruction_factor_ );
+
+            // reset timer for next asexual cycle
+            m_IRBCtimer = 2.0;
+
+            // increment counter of completed asexual cycles
+            m_asexual_cycle_count++;
+        }
+    
+        // Calculates the antigenic switching when an asexual cycle completes and creates next generation of IRBC's
+        void Infection::malariaIRBCAntigenSwitch(double merozoitesurvival)
+        {
+            int64_t switchingIRBC[SWITCHING_IRBC_VARIANT_COUNT];
+            std::vector<int64_t> tmpIRBCcount(CLONAL_PfEMP1_VARIANTS);
+
+            // check for valid range of input, and only create next cycle if valid
+            if (merozoitesurvival < 0)
+            {
+                std::cout << "merozoitesurvival should not be negative";
+                throw;
+            }
+
+            // Several antigen switching mechanisms are supported
+            #pragma loop(hint_parallel(8))
+            for (int j = 0; j < CLONAL_PfEMP1_VARIANTS; j++)
+            {
+                // parasite switching studied in Paget-McNicol, S., M. Gatton, et al. (2002). "The Plasmodium falciparum var gene switching rate, switching mechanism and patterns of parasite recrudescence described by mathematical modelling." Parasitology 124(Pt 3): 225-235.
+                // experimental studies in Horrocks, P., R. Pinches, et al. (2004). "Variable var transition rates underlie antigenic variation in malaria." Proceedings of the National Academy of Sciences of the United States of America 101(30): 11129-11134.
+                // review in Horrocks, P., S. A. Kyes, et al. (2005). Molecular Aspects of Antigenic Variation in Plasmodium falciparum. Molecular Approaches to Malaria. I. W. Sherman. Washington DC, ASM Press: 399-415.
+
+                if ( m_IRBC_count[j] <= 0 ) continue; // no IRBC means no contribution to next time step
+
+                int64_t temp_sum_IRBC = 0;
+                if (Infection::params::antigen_switch_rate > 0)
+                {
+                    #pragma loop(hint_parallel(8))
+                    for ( int iswitch = 0; iswitch < SWITCHING_IRBC_VARIANT_COUNT; iswitch++ )
+                    {
+                        switchingIRBC[iswitch] = (iswitch < 7) ? IntrahostComponent::p_rng->Poisson(Infection::params::antigen_switch_rate * m_IRBC_count[j]) : 0;
+                    }
+
+                    // now test to see if these add up to more than 100 percent
+                    temp_sum_IRBC = std::accumulate(switchingIRBC, switchingIRBC + SWITCHING_IRBC_VARIANT_COUNT, temp_sum_IRBC);
+
+                    // if more than 100 percent minus those switching to gametocyte production, scale down in multiplicative way
+                    if (temp_sum_IRBC > ((1.0 - m_gametorate)*m_IRBC_count[j]))
+                    {
+                        #pragma loop(hint_parallel(8))
+                        for (int iswitch = 0; iswitch < SWITCHING_IRBC_VARIANT_COUNT; iswitch++)
+                            switchingIRBC[iswitch] = int64_t(switchingIRBC[iswitch] * ((1.0f - m_gametorate) * m_IRBC_count[j] / temp_sum_IRBC));
+
+                        temp_sum_IRBC = int64_t((1.0 - m_gametorate) * m_IRBC_count[j]);
+                    }
+                }
+
+                // Now switch to next stages based on predetermined number of switching IRBC's
+                tmpIRBCcount[j] = int64_t(tmpIRBCcount[j] + ((1.0 - m_gametorate) * m_IRBC_count[j] - temp_sum_IRBC) * Infection::params::merozoites_per_schizont * merozoitesurvival);
+                if (Infection::params::antigen_switch_rate > 0)
+                {
+                    #pragma loop(hint_parallel(8))
+                    for ( int iswitch = 0; iswitch < SWITCHING_IRBC_VARIANT_COUNT; iswitch++)
+                    {
+                        tmpIRBCcount[(j + iswitch + 1) % CLONAL_PfEMP1_VARIANTS]  = int64_t(tmpIRBCcount[(j + iswitch + 1) % CLONAL_PfEMP1_VARIANTS] + switchingIRBC[iswitch] * Infection::params::merozoites_per_schizont * merozoitesurvival);
+                    }
+                }
+            }
+            
+            m_IRBC_count.swap(tmpIRBCcount); // swap temporarily accumulated vector of next time step into data member
+        }
+    
+        // Moves all falciparum gametocytes forward a development stage when an asexual cycle completes, and creates the stage 0 immature gametocytes
+        void Infection::malariaCycleGametocytes(double merozoitesurvival)
+        {
+            // set gametocyte production rate for next cycle
+            if ( m_asexual_cycle_count >= Infection::params::n_asexual_cycles_wo_gametocytes )
+            {
+                m_gametorate     = double(Infection::params::base_gametocyte_production); // gametocyte production used by all switching calculations, here is where factors modifying production would go
+                m_gametosexratio = double(Infection::params::base_gametocyte_sexratio);
+            }
+
+            // check for valid range of input, and only create next cycle if valid
+            if (merozoitesurvival >= 0)
+            {
+                #pragma loop(hint_parallel(8))
+                //process gametocytes--5 stages--Sinden, R. E., G. A. Butcher, et al. (1996). "Regulation of Infectivity of Plasmodium to the Mosquito Vector." Advances in Parasitology 38: 53-117.
+                for (int j = GametocyteStages::Mature; j > 0; j--) // move developing gametocytes forward a class, moving backwards through stages to not override next stage's values
+                {
+                    m_malegametocytes[j] = int64_t(m_malegametocytes[j] + m_malegametocytes[j - 1] * Infection::params::gametocyte_stage_survival);
+                    m_malegametocytes[j - 1] = 0;
+
+                    if (m_malegametocytes[j] < 1)
+                        m_malegametocytes[j] = 0;
+
+                    m_femalegametocytes[j] = int64_t(m_femalegametocytes[j] + (m_femalegametocytes[j - 1] * Infection::params::gametocyte_stage_survival));
+                    m_femalegametocytes[j - 1] = 0;
+
+                    if (m_femalegametocytes[j] < 1)
+                         m_femalegametocytes[j] = 0;
+                }
+
+                #pragma loop(hint_parallel(8))
+                // Now create the new stage 1 gametocytes based on production ratios and the prevIRBC counts
+                for (int j = 0; j < CLONAL_PfEMP1_VARIANTS; j++)
+                {
+                    // review of production rates and sex ratios in Sinden, R. E., G. A. Butcher, et al. (1996). "Regulation of Infectivity of Plasmodium to the Mosquito Vector." Advances in Parasitology 38: 53-117.
+                    // each factor may be variable, but here we leave it constant at the moment, conservatively not including the possible senescence of transmission in late infection
+                    m_malegametocytes[GametocyteStages::Stage0]   = int64_t(m_malegametocytes[GametocyteStages::Stage0]   + m_IRBC_count[j] * m_gametorate * m_gametosexratio * merozoitesurvival * Infection::params::merozoites_per_schizont);
+                    m_femalegametocytes[GametocyteStages::Stage0] = int64_t(m_femalegametocytes[GametocyteStages::Stage0] + m_IRBC_count[j] * m_gametorate * (1.0 - m_gametosexratio) * merozoitesurvival * Infection::params::merozoites_per_schizont);
+                }
+            }
         }
     
         void Infection::malariaImmuneStimulation(float dt)

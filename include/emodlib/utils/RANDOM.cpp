@@ -174,6 +174,62 @@ namespace emodlib
         return ee_ul.ee - 1.0;
     }
 
+    // Poisson() added by Philip Eckhoff, uses Gaussian approximation for ratetime>10
+    uint64_t RANDOMBASE::Poisson(double ratetime)
+    {
+        if (ratetime <= 0)
+        {
+            return 0;
+        }
+        uint64_t events = 0;
+        double Time = 0;
+        double tempval;
+        if (ratetime < 10)
+        {
+            while (Time < 1)
+            {
+                Time += -log(e()) / ratetime;
+                if (Time < 1)
+                {
+                    events++;
+                }
+            }
+        }
+        else
+        {
+            tempval = (eGauss() * sqrt(ratetime) + ratetime + .5);
+            if (tempval < 0)
+            {
+                events = 0;
+            }
+            else
+            {
+                events = uint64_t(tempval);
+            }
+        }
+        return events;
+    }
+
+    // Poisson_true added by Philip Eckhoff, actual Poisson, without approximation
+    uint32_t RANDOMBASE::Poisson_true(double ratetime)
+    {
+        if (ratetime <= 0)
+        {
+            return 0;
+        }
+        uint32_t events = 0;
+        double Time = 0;
+        while (Time < 1)
+        {
+            Time += -log(e()) / ratetime;
+            if (Time < 1)
+            {
+                events++;
+            }
+        }
+        return events;
+    }
+
     // ----------------------------------------------------------------------------
     // --- PSEUDO_DES
     // ----------------------------------------------------------------------------

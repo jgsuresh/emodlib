@@ -54,7 +54,9 @@ namespace emodlib
             
             static Susceptibility *Create();
             IMalariaAntibody* RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity=0.0f);
-            
+            void UpdateActiveAntibody( pfemp1_antibody_t &pfemp1_variant, int minor_variant, int major_variant );
+            void remove_RBCs(int64_t infectedAsexual, int64_t infectedGametocytes, double RBC_destruction_multiplier);
+
             void Update(float dt);
             void SetAntigenPresent();
             

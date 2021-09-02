@@ -47,6 +47,12 @@ namespace emodlib
         double ee();
         double eGauss();    // Returns a normal deviate.
 
+        // Added by Philip Eckhoff, Poisson takes in a rate, and returns the number of events in unit time
+        // Or equivalently, takes in rate*time and returns number of events in that time
+        // Poisson uses a Gaussian approximation for large lambda, while Poisson_true is the fully accurate Poisson
+        // expdist takes in a rate and returns the sample from an exponential distribution
+        uint64_t Poisson(double=1.0);
+        uint32_t Poisson_true(double=1.0);
 
     protected:
 

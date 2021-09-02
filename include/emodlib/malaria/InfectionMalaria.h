@@ -29,7 +29,7 @@ namespace emodlib
             
             struct params
             {
-                static ParasiteSwitchType::Enum parasite_switch_type;
+//                static ParasiteSwitchType::Enum parasite_switch_type;
 //                static MalariaStrains::Enum     malaria_strains;
 
                 static float antibody_IRBC_killrate;
@@ -82,11 +82,11 @@ namespace emodlib
             int64_t m_malegametocytes[GametocyteStages::Count];
             int64_t m_femalegametocytes[GametocyteStages::Count];
 
-            // govern distribution of next merozoites -- TODO: why are these not in Params?
+            // govern distribution of next merozoites -- TODO: why are these not in Params? -- placeholders for adaptation
             double m_gametorate;
             double m_gametosexratio;
                         
-            Susceptibility* susceptibility;  // TODO: link on Infection::Create(Susceptibility*) do we like this?
+            Susceptibility* immunity;
             
             float parasite_density;  // TODO: remove placeholders when actual calculations are in place
             float gametocyte_density;
@@ -97,10 +97,13 @@ namespace emodlib
             
             void malariaProcessHepatocytes(float dt);
             void processEndOfAsexualCycle();
+            void malariaIRBCAntigenSwitch(double merozoitesurvival = 1.0);
+            void malariaCycleGametocytes(double merozoitesurvival = 1.0);
             void malariaImmuneStimulation(float dt);
             void malariaImmunityIRBCKill(float dt);
             void malariaImmunityGametocyteKill(float dt);
             void malariaCheckInfectionStatus(float dt);  // TODO: give a more accurate name like EndUpdate()
+
         };
 
     }
