@@ -30,17 +30,20 @@ namespace emodlib
         float  Susceptibility::params::non_specific_growth               = 0.5f;
         float  Susceptibility::params::antibody_csp_decay_days           = DEFAULT_ANTIBODY_CSP_DECAY_DAYS;
     
-//        bool   Susceptibility::params::enable_maternal_antibodies_transmission  = false;
-//        MaternalAntibodiesType::Enum Susceptibility::params::maternal_antibodies_type = MaternalAntibodiesType::OFF;
-//        float  Susceptibility::params::maternal_antibody_protection      = 0.1f;
+        // TODO: emodlib#9 (maternal antibody init) + emodlib#8 (boost + enums)
+        // bool   Susceptibility::params::enable_maternal_antibodies_transmission  = false;
+        // MaternalAntibodiesType::Enum Susceptibility::params::maternal_antibodies_type = MaternalAntibodiesType::OFF;
+        // float  Susceptibility::params::maternal_antibody_protection      = 0.1f;
         float  Susceptibility::params::maternal_antibody_decay_rate      = 0.01f;
     
-//        InnateImmuneVariationType::Enum Susceptibility::params::innate_immune_variation_type = InnateImmuneVariationType::NONE;
+        // TODO: emodlib#9 (innate heterogeneity init) + emodlib#8 (boost + enums)
+        // InnateImmuneVariationType::Enum Susceptibility::params::innate_immune_variation_type = InnateImmuneVariationType::NONE;
         float  Susceptibility::params::pyrogenic_threshold               = 1000.0f;
         float  Susceptibility::params::fever_IRBC_killrate               = DEFAULT_FEVER_IRBC_KILL_RATE;
     
-//        float  Susceptibility::params::base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
-//        float  Susceptibility::params::cytokine_gametocyte_inactivation  = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
+        // TODO: emodlib#7 (infectiousness calculations)
+        // float  Susceptibility::params::base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
+        // float  Susceptibility::params::cytokine_gametocyte_inactivation  = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
   
         float  Susceptibility::params::erythropoiesis_anemia_effect      = 3.5f;
 
@@ -61,8 +64,9 @@ namespace emodlib
             pyrogenic_threshold = pset["Pyrogenic_Threshold"].cast<float>();
             fever_IRBC_killrate = pset["Fever_IRBC_Kill_Rate"].cast<float>();
 
-//            base_gametocyte_mosquito_survival = pset["Base_Gametocyte_Mosquito_Survival_Rate"].cast<float>();
-//            cytokine_gametocyte_inactivation = pset["Cytokine_Gametocyte_Inactivation"].cast<float>();
+            // TODO: emodlib#7 (infectiousness calculations)
+            // base_gametocyte_mosquito_survival = pset["Base_Gametocyte_Mosquito_Survival_Rate"].cast<float>();
+            // cytokine_gametocyte_inactivation = pset["Cytokine_Gametocyte_Inactivation"].cast<float>();
 
             erythropoiesis_anemia_effect = pset["Erythropoiesis_Anemia_Effect"].cast<float>();
         }
@@ -84,7 +88,7 @@ namespace emodlib
             , m_inv_microliters_blood(0.0f)  // assigned in Initialize() as function of age
     
             , m_cytokines(0.0f)
-            , m_ind_pyrogenic_threshold(0.0f)  // TODO: m_ind_* include individual heterogeneity
+            , m_ind_pyrogenic_threshold(0.0f)
             , m_ind_fever_kill_rate(0.0f)
             , m_cytokine_stimulation(0.0f)
             , m_parasite_density(0.0f)
@@ -102,16 +106,20 @@ namespace emodlib
     
         void Susceptibility::Initialize()
         {
-            age = 20 * DAYSPERYEAR;  // TODO: update + access from elsewhere; similarly age-dependent biting risk
+            age = 20 * DAYSPERYEAR;  // TODO: emodlib#10 (demographic components)
+            
+            // TODO: emodlib#10 (transmission components)
+            // m_age_dependent_biting_risk = BitingRiskAgeFactor(age);
             
             recalculateBloodCapacity(age);
             m_RBC = m_RBCcapacity;
 
             // Track individual pyrogenic thresholds + fever killing rates as instance variables
+            // TODO: emodlib#9 (innate heterogeneity init)
             m_ind_pyrogenic_threshold = params::pyrogenic_threshold;
             m_ind_fever_kill_rate = params::fever_IRBC_killrate;
             
-            // TODO: maternal antibodies were being set deep in Node.cpp base class for explicit mother-to-child link
+            // TODO: emodlib#9 (maternal antibody init)
             
             m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(0);
 

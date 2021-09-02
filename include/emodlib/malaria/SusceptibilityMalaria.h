@@ -37,21 +37,19 @@ namespace emodlib
                 
                 // Used in Susceptibility for:
                 // ...maternal protection
-                // TODO: expose demographic initialization variables to Python layer and remove from C++
-//                static bool enable_maternal_antibodies_transmission;
-//                static MaternalAntibodiesType::Enum maternal_antibodies_type; // <--
-//                static float maternal_antibody_protection;
+                // static bool enable_maternal_antibodies_transmission;
+                // static MaternalAntibodiesType::Enum maternal_antibodies_type; // TODO: emodlib#9 (innate init)
+                // static float maternal_antibody_protection;
                 static float maternal_antibody_decay_rate;
                 
                 // ...innate immunity effects
-//                static InnateImmuneVariationType::Enum innate_immune_variation_type; // <--
+                // static InnateImmuneVariationType::Enum innate_immune_variation_type; // TODO: emodlib#9 (innate init)
                 static float pyrogenic_threshold;
                 static float fever_IRBC_killrate;
                 
                 // ... infectiousness calculations
-                // TODO: calculate outside of immune model -- or internalize calculation?
-//                static float base_gametocyte_mosquito_survival;
-//                static float cytokine_gametocyte_inactivation;
+                // static float base_gametocyte_mosquito_survival;  // TODO: emodlib#7 (infectiousness calculations)
+                // static float cytokine_gametocyte_inactivation;
                 
                 // ... red blood cell effects
                 static float erythropoiesis_anemia_effect;
@@ -80,7 +78,7 @@ namespace emodlib
             
         private:
 
-            float age;  // TODO: access from DemographicComponent * -- was in base class as parallel variable
+            float age;  // TODO: emodlib#10 (demographic components)
             
             // containers for antibody objects
             int32_t m_antigenic_flag;
@@ -105,8 +103,7 @@ namespace emodlib
                         
             
             Susceptibility();
-            // TODO: expose heterogeneity initialization + interaction with DemographicComponent via Python layer
-            void Initialize();  // <-- original base class: Initialize(age, immmod, riskmod)
+            void Initialize();  // TODO: emodlib#9 (innate init) + emodlib#10 (demographic/transmission components)
             
             void recalculateBloodCapacity( float _age );
             void updateImmunityCSP( float dt );

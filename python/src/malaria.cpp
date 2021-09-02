@@ -45,4 +45,9 @@ void add_malaria_bindings(py::module& m) {
         .def_property_readonly("gametocyte_density", &IntrahostComponent::GetGametocyteDensity)
         .def_property_readonly("fever_temperature", &IntrahostComponent::GetFeverTemperature);
 
+    // TODO: emodlib#9 (readwrite for init) + emodlib#11 (readonly for testing)
+    // py::class_<Infection>
+    // py::class_<Susceptibility>
+    // py::class_<IMalariaAntibody>
+    
 }

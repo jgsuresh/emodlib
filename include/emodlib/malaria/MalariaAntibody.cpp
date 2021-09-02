@@ -50,7 +50,6 @@ namespace emodlib
         void MalariaAntibodyCSP::Decay( float dt )
         {
             // allow the decay of anti-CSP concentrations greater than unity (e.g. after boosting by vaccine)
-            // TODO: this might become the default when boosting extends to other antibody types?
             if ( m_antibody_concentration > m_antibody_capacity )
             {
                 m_antibody_concentration -= m_antibody_concentration * dt / Susceptibility::params::antibody_csp_decay_days;
@@ -168,7 +167,6 @@ namespace emodlib
         void MalariaAntibodyCSP::UpdateAntibodyConcentration( float dt )
         {
             // allow the decay of anti-CSP concentrations greater than unity (e.g. after boosting by vaccine)
-            // TODO: this might become the default when boosting extends to other antibody types?
             if ( m_antibody_concentration > m_antibody_capacity )
             {
                 m_antibody_concentration -= m_antibody_concentration * dt / Susceptibility::params::antibody_csp_decay_days;

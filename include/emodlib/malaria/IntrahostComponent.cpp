@@ -51,26 +51,30 @@ namespace emodlib
             return ic;
         }
 
+        // TODO: emodlib#7 (infectiousness calculations)
+    
         void IntrahostComponent::Update(float dt)
         {
-            // TODO: include mature gametocyte decay + kill somewhere
+            // TODO: emodlib#5 (mature gametocyte decay) + emodlib#4 (mature gametocyte drug killing)
             
             susceptibility->Update(dt);
 
             for (auto* inf : infections) {
                 inf->Update(dt);
+                
+                // TODO: emodlib#3 (InfectionStateChange::Cleared)
             }
         }
 
         void IntrahostComponent::Challenge()
         {
             Infection* inf = Infection::Create(susceptibility);
-            infections.push_back(inf);  // TODO: Max_Individual_Infections limit
+            infections.push_back(inf);  // TODO: emodlib#2 (Max_Individual_Infections)
         }
 
         void IntrahostComponent::Treat()
         {
-            infections.clear();  // TODO: drug-based asexual clearance + slow gametocyte decay
+            infections.clear();  // TODO: emodlib#4 (asexual drug killing) + emodlib#3 (InfectionStateChange::Cleared)
         }
 
         float IntrahostComponent::GetParasiteDensity() const
@@ -86,7 +90,7 @@ namespace emodlib
         {
             float total = 0.0f;
             for (auto* inf: infections) {
-                total += inf->get_mature_gametocyte_density();
+                total += inf->get_mature_gametocyte_density();  // TODO: emodlib#5 (mature gametocyte decay)
             }
             return total;
         }

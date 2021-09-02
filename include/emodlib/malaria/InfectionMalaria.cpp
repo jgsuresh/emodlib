@@ -22,8 +22,9 @@ namespace emodlib
     namespace malaria
     {
 
-//        ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
-//        MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
+        // TODO: emodlib#8 (boost + enums)
+        // ParasiteSwitchType::Enum Infection::params::parasite_switch_type = ParasiteSwitchType::RATE_PER_PARASITE_7VARS;
+        // MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
         float Infection::params::incubation_period = 7.0f; // liver stage duration
     
@@ -45,7 +46,7 @@ namespace emodlib
     
         void Infection::params::Configure(const ParamSet& pset)
         {
-            incubation_period = pset["Base_Incubation_Period"].cast<float>();  // TODO: gaussian in more recent configs
+            incubation_period = pset["Base_Incubation_Period"].cast<float>();  // TODO: emodlib#6 (gaussian distribution)
             
             antibody_IRBC_killrate = pset["Antibody_IRBC_Kill_Rate"].cast<float>();
             non_specific_antigenicity = pset["Nonspecific_Antigenicity_Factor"].cast<float>();
@@ -168,7 +169,7 @@ namespace emodlib
                 if (immunity->get_RBC_count() < 1)
                 {
                     std::cout << "Individual has no more red-blood cells";
-                    throw;  // TODO: gracefully kill this individual?
+                    throw;  // TODO: emodlib#3 (InfectionStateChange::Killed)
                 }
 
                 // Immune Interaction
@@ -196,7 +197,7 @@ namespace emodlib
             // check for valid inputs
             if (dt > 0 && immunity && m_hepatocytes > 0)
             {
-                // TODO: hepatocyte drug killing goes here
+                // TODO: emodlib#4 (hepatocyte drug killing)
                 
                 // ----------------------------------------------------------------------------------------------------------------------
                 // --- latency in hepatocyte phase Collins, W. E. and G. M. Jeffery (1999).
@@ -425,7 +426,7 @@ namespace emodlib
                 // Offset basic sigmoid: effect rises as basic sigmoid beginning from a fever of MIN_FEVER_DEGREES_KILLING
                 double fever_cytokine_killrate = (immunity->get_fever() > MIN_FEVER_DEGREES_KILLING) ? immunity->get_fever_killing_rate() * Sigmoid::basic_sigmoid(1.0, immunity->get_fever() - MIN_FEVER_DEGREES_KILLING) : 0.0;
                 
-                // TODO: asexual-stage drug killing goes here
+                // TODO: emodlib#4 (asexual-stage drug killing)
                 double drug_killrate = 0;
 
                 #pragma loop(hint_parallel(8))
@@ -473,7 +474,7 @@ namespace emodlib
                     // We leave this variable here at zero incase we change DepositInfectiousnessFromGametocytes()
                     double fever_cytokine_killrate = 0; // 0 = don't kill due to fever
 
-                    // TODO: gametocyte drug killing goes here
+                    // TODO: emodlib#4 (early- and late-stage gametocyte drug killing)
                     double drug_killrate = 0;
                     
                     // no randomness in gametocyte killing, but a continuity correction
@@ -488,13 +489,14 @@ namespace emodlib
                         m_femalegametocytes[i] = 0;
                 }
 
-                // TODO: mature gametocyte counts are accumulated + (decay + drug killing) as part of Individual_Malaria::UpdateInfectiousness() --> UpdateGametocyteCounts() -- called in separate human-to-mosquito infectiousness calculations before loop over individual update step.
+                // TODO: emodlib#5 (mature gametocyte decay)
             }
         }
 
         void Infection::malariaCheckInfectionStatus(float dt)
         {
-            // TODO: toggle Infection::Cleared state change if zero hepatocytes + IRBC + gametocytes
+            // TODO: emodlib#3 (InfectionStateChange::Cleared)
+            // if (hepatocytes + IRBC + gametocytes) = 0
         }
         
         suids::suid Infection::GetSuid() const
