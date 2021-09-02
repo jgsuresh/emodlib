@@ -242,27 +242,107 @@ namespace emodlib
     
         void Susceptibility::updateImmunityCSP( float dt )
         {
-            
+            if ( !m_CSP_antibody->GetAntigenicPresence() )
+            {
+                m_CSP_antibody->Decay( dt );
+                return;
+            }
+
+            // Hyper-immune response (could potentially keep this as part of the update in ExposeToInfectivity)
+            if (m_CSP_antibody->GetAntibodyCapacity() > 0.4)
+            {
+                m_CSP_antibody->UpdateAntibodyCapacityByRate( dt, 0.33f );
+            }
+
+            m_CSP_antibody->UpdateAntibodyConcentration( dt );
         }
         
         void Susceptibility::updateImmunityMSP( float dt, float& temp_cytokine_stimulation )
         {
-            
+            // Merozoite-specific immunity
+            // Blackman, M. J., H. G. Heidrich, et al. (1990).
+            // "A single fragment of a malaria merozoite surface protein remains on the parasite during
+            //  red cell invasion and is the target of invasion-inhibiting antibodies."
+            // J Exp Med 172(1): 379-382.
+
+            for (auto antibody : m_active_MSP_antibodies)
+            {
+                if ( !antibody->GetAntigenicPresence() )
+                {
+                    antibody->Decay( dt );
+                    continue;
+                }
+
+                // Temporary cytokines stimulated by spikes in MSP antigenic presence after schizont bursts
+                temp_cytokine_stimulation += antibody->StimulateCytokines( dt, m_inv_microliters_blood );
+
+                antibody->UpdateAntibodyCapacity( dt, m_inv_microliters_blood );
+                antibody->UpdateAntibodyConcentration( dt );
+            }
         }
         
         void Susceptibility::updateImmunityPfEMP1Minor( float dt )
         {
-            
+            // Minor epitope IRBC antigens
+            // Recker, M., S. Nee, et al. (2004).
+            // "Transient cross-reactive immune responses can orchestrate antigenic variation in malaria."
+            // Nature 429(6991): 555-558.
+
+            for (auto antibody : m_active_PfEMP1_minor_antibodies)
+            {
+                if ( !antibody->GetAntigenicPresence() )
+                {
+                    antibody->Decay( dt );
+                    continue;
+                }
+
+                antibody->UpdateAntibodyCapacity( dt, m_inv_microliters_blood );
+                antibody->UpdateAntibodyConcentration( dt );
+
+                // Accumulate parasite density
+                m_parasite_density += float(antibody->GetAntigenCount()) * m_inv_microliters_blood;
+            }
         }
         
         void Susceptibility::updateImmunityPfEMP1Major( float dt )
         {
-            
+            for (auto antibody : m_active_PfEMP1_major_antibodies)
+            {
+                if ( !antibody->GetAntigenicPresence() )
+                {
+                    antibody->Decay( dt );
+                    continue;
+                }
+
+                // Cytokines released at low antibody concentration (if capacity hasn't switched into high proliferation rate yet)
+                if ( antibody->GetAntibodyCapacity() <= 0.4 )
+                {
+                    m_cytokine_stimulation += antibody->StimulateCytokines( dt, m_inv_microliters_blood );
+                }
+
+                antibody->UpdateAntibodyCapacity( dt, m_inv_microliters_blood );
+                antibody->UpdateAntibodyConcentration( dt );
+            }
         }
         
         void Susceptibility::decayAllAntibodies( float dt )
         {
-            
+            // CSP handled outside check for any active infection
+
+            for (auto antibody : m_active_MSP_antibodies)
+            {
+                antibody->Decay( dt );
+            }
+
+            for (auto antibody : m_active_PfEMP1_minor_antibodies)
+            {
+                antibody->Decay( dt );
+            }
+
+            for (auto antibody : m_active_PfEMP1_major_antibodies)
+            {
+                antibody->Decay( dt );
+            }
         }
     
         void Susceptibility::SetAntigenPresent()
