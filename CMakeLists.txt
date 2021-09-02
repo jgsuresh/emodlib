@@ -6,7 +6,7 @@ set(EMODLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 OPTION(BUILD_TESTS "build emodlib test suite" OFF)
 OPTION(BUILD_BENCHMARK "build emodlib benchmark suite" OFF)
-OPTION(BUILD_PYTHON_MODULE "build emodlib Python bindings" ON)
+OPTION(BUILD_PYTHON_MODULE "build emodlib Python bindings" OFF)
 
 set(CMAKE_MODULE_PATH
     ${CMAKE_SOURCE_DIR}/cmake

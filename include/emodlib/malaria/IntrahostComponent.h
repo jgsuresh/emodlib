@@ -7,11 +7,14 @@
 #pragma once
 
 #include <list>
+#include <memory>
 
 #include "emodlib/ParamSet.h"
+#include "emodlib/utils/RANDOM.h"
 
 #include "InfectionMalaria.h"
 #include "SusceptibilityMalaria.h"
+
 
 namespace emodlib
 {
@@ -23,14 +26,24 @@ namespace emodlib
         {
 
         public:
+            
             struct params
             {
+                static int randomSeed;
+                
+                static int falciparumMSPVars;
+                static int falciparumNonSpecTypes;
+                static int falciparumPfEMP1Vars;
+                
                 static void Configure(const ParamSet& pset);
             };
             
+            
+            static std::shared_ptr<RANDOMBASE> p_rng;
+            
             static IntrahostComponent* Create();
 
-            void Update();
+            void Update(float dt);
 
             void Challenge();
             void Treat();
@@ -39,11 +52,15 @@ namespace emodlib
             float GetGametocyteDensity() const;
             float GetFeverTemperature() const;
 
+
         private:
-            IntrahostComponent();
 
             Susceptibility* susceptibility;
             std::list<Infection*> infections;
+
+            
+            IntrahostComponent();
+
         };
 
     }
