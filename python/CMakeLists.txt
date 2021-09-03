@@ -36,12 +36,22 @@ message("  -> site-packages: " ${SP_DIR})
 
 set(PY_EMODLIB _emodlib_py)
 
-pybind11_add_module(${PY_EMODLIB} src/main.cpp)
+# -- emodlib
+set(EMODLIB_OBJECTS
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/InfectionMalaria.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/SusceptibilityMalaria.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/IntrahostComponent.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/MalariaAntibody.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/utils/RANDOM.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/utils/suids
+)
+
+pybind11_add_module(${PY_EMODLIB} src/main.cpp ${EMODLIB_OBJECTS})
 
 # include top-level directory to allow full include paths
 target_include_directories(${PY_EMODLIB} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(${PY_EMODLIB} PUBLIC emodlib-malaria)
+#target_link_libraries(${PY_EMODLIB} PUBLIC emodlib-malaria)
 
 target_compile_features(${PY_EMODLIB} PUBLIC cxx_std_14)
 
