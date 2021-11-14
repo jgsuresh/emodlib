@@ -104,6 +104,7 @@ namespace emodlib
             void malariaImmunityIRBCKill(float dt);
             void malariaImmunityGametocyteKill(float dt);
             void malariaCheckInfectionStatus(float dt);  // TODO: emodlib#3 (InfectionStateChange::Cleared)
+            void apply_MatureGametocyteKillProbability(float pkill);
 
         };
 
