@@ -490,7 +490,26 @@ namespace emodlib
                 }
 
                 // TODO: emodlib#5 (mature gametocyte decay)
+
+                float drugGametocyteKill = 0;  // TODO: emodlib#4 (mature gametocyte drug killing)
+                double pkill = EXPCDF( -dt * (0.277 + drugGametocyteKill) ); // half-life of 2.5 days corresponds to a decay time constant of 3.6 days, 0.277 = 1/3.6
+                apply_MatureGametocyteKillProbability( pkill );
             }
+        }
+
+        int64_t ApplyKillProbability( float pkill, int64_t initial_gc, double eGauss )
+        {
+            double numkilled = (eGauss * sqrt( pkill * initial_gc * (1.0 - pkill) ) + pkill * initial_gc);
+            numkilled = std::max( 0.0, numkilled ); //can't add by killing
+            int64_t new_gc = int64_t( initial_gc - numkilled );
+            return std::max( 0LL, new_gc );
+        }
+
+        void Infection::apply_MatureGametocyteKillProbability(float pkill)
+        { 
+            // Gaussian approximation of binomial errors for male and female mature gametocytes
+            m_femalegametocytes[ GametocyteStages::Mature ] = ApplyKillProbability( pkill, m_femalegametocytes[ GametocyteStages::Mature ], IntrahostComponent::p_rng->eGauss() );
+            m_malegametocytes[ GametocyteStages::Mature ] = ApplyKillProbability(   pkill, m_malegametocytes[   GametocyteStages::Mature ], IntrahostComponent::p_rng->eGauss() );
         }
 
         void Infection::malariaCheckInfectionStatus(float dt)
