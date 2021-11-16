@@ -8,7 +8,7 @@ to lightweight decoupled libraries with Python bindings to facilitate uptake in 
 
 ### Linux
 ```
-apt-get -y install python cmake python-pybind11 libboost
+apt-get -y install python3 cmake python3-pybind11 libboost-all-dev g++
 ```
 
 #### Mac
