@@ -502,7 +502,7 @@ namespace emodlib
             double numkilled = (eGauss * sqrt( pkill * initial_gc * (1.0 - pkill) ) + pkill * initial_gc);
             numkilled = std::max( 0.0, numkilled ); //can't add by killing
             int64_t new_gc = int64_t( initial_gc - numkilled );
-            return std::max( 0LL, new_gc );
+            return std::max( (int64_t)0, new_gc );
         }
 
         void Infection::apply_MatureGametocyteKillProbability(float pkill)
