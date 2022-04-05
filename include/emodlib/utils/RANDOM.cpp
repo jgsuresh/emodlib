@@ -6,9 +6,11 @@
 #ifndef WIN32
 #include <memory.h>    // memset
 #include <climits>     // UINT_MAX
-#include <wmmintrin.h> // AES
-#include <smmintrin.h> // _mm_insert_epi64
-#include <tmmintrin.h> // _mm_shuffle_epi8
+#include "sse2neon.h"
+// #include <emmintrin.h> // __m128i
+// #include <wmmintrin.h> // AES
+// #include <smmintrin.h> // _mm_insert_epi64
+// #include <tmmintrin.h> // _mm_shuffle_epi8
 #endif
 
 #define PRNG_COUNT  (1<<20) // Let's start with ~1 million

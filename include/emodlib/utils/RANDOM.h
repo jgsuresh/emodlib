@@ -16,10 +16,6 @@
 #include <vector>
 #include <set>
 
-#ifndef WIN32
-#include<emmintrin.h> // for __m128i
-#endif
-
 
 namespace emodlib
 {
