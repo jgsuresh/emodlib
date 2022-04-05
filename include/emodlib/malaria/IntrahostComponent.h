@@ -31,6 +31,8 @@ namespace emodlib
             {
                 static int randomSeed;
                 
+                static int max_ind_inf;
+
                 static int falciparumMSPVars;
                 static int falciparumNonSpecTypes;
                 static int falciparumPfEMP1Vars;
@@ -47,6 +49,8 @@ namespace emodlib
 
             void Challenge();
             void Treat();
+
+            int GetNumInfections() const;
 
             float GetParasiteDensity() const;
             float GetGametocyteDensity() const;

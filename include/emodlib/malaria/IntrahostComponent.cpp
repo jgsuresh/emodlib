@@ -15,6 +15,9 @@ namespace emodlib
 
         int IntrahostComponent::params::randomSeed = 0;
     
+        int IntrahostComponent::params::max_ind_inf = 1;
+
+
         int IntrahostComponent::params::falciparumMSPVars = DEFAULT_MSP_VARIANTS;
         int IntrahostComponent::params::falciparumNonSpecTypes = DEFAULT_NONSPECIFIC_TYPES;
         int IntrahostComponent::params::falciparumPfEMP1Vars = DEFAULT_PFEMP1_VARIANTS;
@@ -28,6 +31,8 @@ namespace emodlib
             randomSeed = pset["Run_Number"].cast<int>();
             IntrahostComponent::p_rng = std::shared_ptr<RANDOMBASE>(new PSEUDO_DES(randomSeed, 256));
             
+            max_ind_inf = pset["Max_Individual_Infections"].cast<int>();
+
             falciparumMSPVars = pset["Falciparum_MSP_Variants"].cast<int>();
             falciparumNonSpecTypes = pset["Falciparum_Nonspecific_Types"].cast<int>();
             falciparumPfEMP1Vars = pset["Falciparum_PfEMP1_Variants"].cast<int>();
@@ -68,13 +73,20 @@ namespace emodlib
 
         void IntrahostComponent::Challenge()
         {
-            Infection* inf = Infection::Create(susceptibility);
-            infections.push_back(inf);  // TODO: emodlib#2 (Max_Individual_Infections)
+            if (infections.size() < params::max_ind_inf) {
+                Infection* inf = Infection::Create(susceptibility);
+                infections.push_back(inf);  // TODO: emodlib#2 (Max_Individual_Infections)
+            }
         }
 
         void IntrahostComponent::Treat()
         {
             infections.clear();  // TODO: emodlib#4 (asexual drug killing) + emodlib#3 (InfectionStateChange::Cleared)
+        }
+
+        int IntrahostComponent::GetNumInfections() const
+        {
+            return infections.size();
         }
 
         float IntrahostComponent::GetParasiteDensity() const

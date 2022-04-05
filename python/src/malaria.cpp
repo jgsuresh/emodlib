@@ -41,6 +41,8 @@ void add_malaria_bindings(py::module& m) {
              &IntrahostComponent::Treat,
              "Treat and clear all infections")
     
+        .def_property_readonly("n_infections", &IntrahostComponent::GetNumInfections)
+
         .def_property_readonly("parasite_density", &IntrahostComponent::GetParasiteDensity)
         .def_property_readonly("gametocyte_density", &IntrahostComponent::GetGametocyteDensity)
         .def_property_readonly("fever_temperature", &IntrahostComponent::GetFeverTemperature);
