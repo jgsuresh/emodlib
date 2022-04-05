@@ -62,6 +62,7 @@ namespace emodlib
             int64_t get_FemaleGametocytes(int stage) const;
             float get_asexual_density() const;
             float get_mature_gametocyte_density() const;
+            bool IsCleared() const;
 
             
         private:

@@ -64,10 +64,19 @@ namespace emodlib
             
             susceptibility->Update(dt);
 
-            for (auto* inf : infections) {
-                inf->Update(dt);
+            for (auto it = infections.begin(); it != infections.end();) {
+
+                (*it)->Update(dt);
                 
                 // TODO: emodlib#3 (InfectionStateChange::Cleared)
+
+                if ((*it)->IsCleared()) {
+                    delete *it;
+                    it = infections.erase(it);
+                    continue;
+                }
+
+                ++it;
             }
         }
 
