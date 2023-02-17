@@ -24,7 +24,7 @@ message(STATUS "Building emodlib v${VERSION_STR}")
 
 # -- emodlib
 
-#add_subdirectory(include/emodlib)
+add_subdirectory(include/emodlib)
 
 # -- optional subdirectories
 

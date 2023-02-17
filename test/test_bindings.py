@@ -13,6 +13,8 @@ def describe(c, t=None):
 params = dict(
     Run_Number=12345,
     
+    Max_Individual_Infections=5,
+
     Falciparum_MSP_Variants=32,
     Falciparum_Nonspecific_Types=76,
     Falciparum_PfEMP1_Variants=1070,

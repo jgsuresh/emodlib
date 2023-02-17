@@ -546,6 +546,20 @@ namespace emodlib
             return mature_female_gametocytes * immunity->get_inv_microliters_blood();
         }
 
+        bool Infection::IsCleared() const {
+
+            int64_t totalIRBC = 0;
+            totalIRBC = std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
+
+            int64_t totalgametocytes = 0;
+            for (int i = 0; i < GametocyteStages::Mature; i++)
+            {
+                totalgametocytes += m_malegametocytes[i] + m_femalegametocytes[i];
+            }
+
+            return (totalIRBC + m_hepatocytes + totalgametocytes) < 1;
+        }
+
     }
 
 }
