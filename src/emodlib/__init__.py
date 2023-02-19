@@ -1,4 +1,3 @@
-import _emodlib_py
-from _emodlib_py import *
+from _emodlib_py import __doc__, __version__
 
-__version__ = _emodlib_py.__version__
+__all__ = ["__doc__", "__version__"]
