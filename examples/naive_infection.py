@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from emodlib.malaria import *
+from emodlib.malaria import IntrahostComponent
 
 
 def configure_from_file(config_path):

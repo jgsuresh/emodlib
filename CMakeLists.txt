@@ -1,42 +1,23 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.15...3.22)
 
-project(emodlib)
+project(emodlib LANGUAGES CXX)
 
-set(EMODLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+find_package(pybind11 CONFIG REQUIRED)
 
-OPTION(BUILD_TESTS "build emodlib test suite" OFF)
-OPTION(BUILD_BENCHMARK "build emodlib benchmark suite" OFF)
-OPTION(BUILD_PYTHON_MODULE "build emodlib Python bindings" OFF)
+# emodlib src files
+set(EMODLIB_OBJECTS
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/InfectionMalaria.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/SusceptibilityMalaria.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/IntrahostComponent.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/MalariaAntibody.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/utils/RANDOM.cpp
+  ${CMAKE_SOURCE_DIR}/include/emodlib/utils/suids.cpp
+)
 
-set(CMAKE_MODULE_PATH
-    ${CMAKE_SOURCE_DIR}/cmake
-    ${CMAKE_MODULE_PATH})
+pybind11_add_module(_emodlib_py src/main.cpp ${EMODLIB_OBJECTS})
 
-# Versioning
-# ==========
+target_include_directories(_emodlib_py PUBLIC ${CMAKE_SOURCE_DIR}/include)  # top-level directory for full include paths
+target_compile_features(_emodlib_py PUBLIC cxx_std_14)
+target_compile_definitions(_emodlib_py PRIVATE VERSION_INFO=${PROJECT_VERSION})  # referenced in main.cpp
 
-include(VersionUtils)
-set_version_str("${EMODLIB_INCLUDE_DIR}")
-message(STATUS "Building emodlib v${VERSION_STR}")
-
-# Configure/Build
-# ===============
-
-# -- emodlib
-
-add_subdirectory(include/emodlib)
-
-# -- optional subdirectories
-
-if(BUILD_TESTS)
-  enable_testing()
-  add_subdirectory(test)
-endif()
-
-if(BUILD_BENCHMARK)
-  add_subdirectory(benchmark)
-endif()
-
-if(BUILD_PYTHON_MODULE)
-  add_subdirectory(python)
-endif()
+install(TARGETS _emodlib_py DESTINATION emodlib)
