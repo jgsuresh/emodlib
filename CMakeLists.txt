@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.22)
 
-project(emodlib LANGUAGES CXX)
+project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION})
 
 find_package(pybind11 CONFIG REQUIRED)
 
