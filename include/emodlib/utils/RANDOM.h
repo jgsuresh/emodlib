@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <stdint.h>
 #include <vector>
 #include <set>
