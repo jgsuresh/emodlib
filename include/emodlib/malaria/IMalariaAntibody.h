@@ -10,7 +10,7 @@ namespace emodlib
 
     namespace malaria
     {
-    
+
         struct IMalariaAntibody
         {
             virtual void  Decay( float dt ) = 0;
@@ -34,7 +34,7 @@ namespace emodlib
             virtual MalariaAntibodyType::Enum GetAntibodyType() const = 0;
             virtual int GetAntibodyVariant() const = 0;
         };
-    
+
         typedef struct
         {
             IMalariaAntibody* minor;

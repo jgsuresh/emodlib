@@ -1,14 +1,12 @@
-import yaml
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import yaml
 
 from emodlib.malaria import IntrahostComponent
 
 
 def configure_from_file(config_path):
-
     with open(config_path) as cfg:
         params = yaml.load(cfg, Loader=yaml.FullLoader)
 
@@ -18,7 +16,6 @@ def configure_from_file(config_path):
 
 
 def run_challenge(duration):
-
     asexuals = np.zeros(duration)
     gametocytes = np.zeros(duration)
 
@@ -30,22 +27,24 @@ def run_challenge(duration):
         asexuals[t] = ic.parasite_density
         gametocytes[t] = ic.gametocyte_density
 
-    return pd.DataFrame({'days': range(duration),
-                         'parasite_density': asexuals,
-                         'gametocyte_density': gametocytes}).set_index('days')
+    return pd.DataFrame(
+        {
+            "days": range(duration),
+            "parasite_density": asexuals,
+            "gametocyte_density": gametocytes,
+        }
+    ).set_index("days")
 
 
-if __name__ == '__main__':
-
-    configure_from_file('config.yaml')
+if __name__ == "__main__":
+    configure_from_file("config.yaml")
 
     df = run_challenge(duration=300)
     print(df.head(10))
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 3))
-    df.plot(ax=ax, color=dict(parasite_density='navy', gametocyte_density='darkgreen'))
-    ax.set(yscale='log')
+    df.plot(ax=ax, color=dict(parasite_density="navy", gametocyte_density="darkgreen"))
+    ax.set(yscale="log")
     fig.set_tight_layout(True)
 
     plt.show()
-    

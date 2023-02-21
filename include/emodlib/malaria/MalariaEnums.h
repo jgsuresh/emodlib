@@ -22,7 +22,7 @@ namespace emodlib
                 FALCIPARUM_STRAIN_GENERATOR = 20,
             };
         }
-        
+
         // ENUM defs for PARASITE_SWITCH_TYPE
         // RATE_PER_PARASITE_7VARS is default
         namespace ParasiteSwitchType {
@@ -32,7 +32,7 @@ namespace emodlib
                 RATE_PER_PARASITE_5VARS_DECAYING = 2,
             };
         }
-    
+
         // ENUM defs for MATERNAL_ANTIBODIES_TYPE
         // SIMPLE_WANING draws a PfEMP1 antibody strength is initialized
         //               at a fraction of the mother's level and wanes exponentially
@@ -45,7 +45,7 @@ namespace emodlib
                 CONSTANT_INITIAL_IMMUNITY = 2,
             };
         }
-    
+
         namespace InnateImmuneVariationType {
             enum Enum {
                 NONE = 0,
@@ -54,7 +54,7 @@ namespace emodlib
                 PYROGENIC_THRESHOLD_VS_AGE = 3,
             };
         }
-    
+
         namespace AsexualCycleStatus {
             enum Enum {
                 NoAsexualCycle = 0,
@@ -62,7 +62,7 @@ namespace emodlib
                 HepatocyteRelease = 2,
             };
         }
-    
+
         // CSP:    Circumsporozoite protein
         // MSP1:   Merozoite surface protein
         // PfEMP1: Plasmodium falciparum erythrocyte membrane protein (minor non-specific epitopes)
@@ -77,7 +77,7 @@ namespace emodlib
                 N_MALARIA_ANTIBODY_TYPES = 4,
             };
         }
-    
+
         // 5 stages of development and mature gametocytes
         namespace GametocyteStages {
             enum Enum {
@@ -90,7 +90,7 @@ namespace emodlib
                 Count = 6,
             };
         }
-    
+
     }
 
 }

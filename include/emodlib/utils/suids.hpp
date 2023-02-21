@@ -74,7 +74,7 @@ namespace emodlib
             int rank;
             int numtasks;
         };
-    
+
     } // namespace emodlib::suids
 
 } // namespace emodlib

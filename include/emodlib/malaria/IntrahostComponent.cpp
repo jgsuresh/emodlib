@@ -14,23 +14,23 @@ namespace emodlib
     {
 
         int IntrahostComponent::params::randomSeed = 0;
-    
+
         int IntrahostComponent::params::max_ind_inf = 1;
 
 
         int IntrahostComponent::params::falciparumMSPVars = DEFAULT_MSP_VARIANTS;
         int IntrahostComponent::params::falciparumNonSpecTypes = DEFAULT_NONSPECIFIC_TYPES;
         int IntrahostComponent::params::falciparumPfEMP1Vars = DEFAULT_PFEMP1_VARIANTS;
-    
-    
+
+
         std::shared_ptr<RANDOMBASE> IntrahostComponent::p_rng = nullptr;
 
-    
+
         void IntrahostComponent::params::Configure(const ParamSet& pset)
         {
             randomSeed = pset["Run_Number"].cast<int>();
             IntrahostComponent::p_rng = std::shared_ptr<RANDOMBASE>(new PSEUDO_DES(randomSeed, 256));
-            
+
             max_ind_inf = pset["Max_Individual_Infections"].cast<int>();
 
             falciparumMSPVars = pset["Falciparum_MSP_Variants"].cast<int>();
@@ -40,8 +40,8 @@ namespace emodlib
             Infection::params::Configure(pset["infection_params"]);
             Susceptibility::params::Configure(pset["susceptibility_params"]);
         }
-    
-    
+
+
         IntrahostComponent::IntrahostComponent()
             : susceptibility(nullptr)
             , infections()
@@ -57,17 +57,17 @@ namespace emodlib
         }
 
         // TODO: emodlib#7 (infectiousness calculations)
-    
+
         void IntrahostComponent::Update(float dt)
         {
             // TODO: emodlib#5 (mature gametocyte decay) + emodlib#4 (mature gametocyte drug killing)
-            
+
             susceptibility->Update(dt);
 
             for (auto it = infections.begin(); it != infections.end();) {
 
                 (*it)->Update(dt);
-                
+
                 // TODO: emodlib#3 (InfectionStateChange::Cleared)
 
                 if ((*it)->IsCleared()) {

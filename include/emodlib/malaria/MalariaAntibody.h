@@ -7,7 +7,7 @@ namespace emodlib
 
     namespace malaria
     {
-    
+
         class MalariaAntibody : public IMalariaAntibody
         {
         public:

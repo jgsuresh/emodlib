@@ -22,7 +22,7 @@ namespace emodlib
         {
 
         public:
-            
+
             struct params
             {
                 // Used in MalariaAntibody for boost-decay functions
@@ -34,30 +34,30 @@ namespace emodlib
                 static float minimum_adapted_response;
                 static float non_specific_growth;
                 static float antibody_csp_decay_days;
-                
+
                 // Used in Susceptibility for:
                 // ...maternal protection
                 // static bool enable_maternal_antibodies_transmission;
                 // static MaternalAntibodiesType::Enum maternal_antibodies_type; // TODO: emodlib#9 (innate init)
                 // static float maternal_antibody_protection;
                 static float maternal_antibody_decay_rate;
-                
+
                 // ...innate immunity effects
                 // static InnateImmuneVariationType::Enum innate_immune_variation_type; // TODO: emodlib#9 (innate init)
                 static float pyrogenic_threshold;
                 static float fever_IRBC_killrate;
-                
+
                 // ... infectiousness calculations
                 // static float base_gametocyte_mosquito_survival;  // TODO: emodlib#7 (infectiousness calculations)
                 // static float cytokine_gametocyte_inactivation;
-                
+
                 // ... red blood cell effects
                 static float erythropoiesis_anemia_effect;
-                
+
                 static void Configure(const ParamSet& pset);
             };
-            
-            
+
+
             static Susceptibility *Create();
             IMalariaAntibody* RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity=0.0f);
             void UpdateActiveAntibody( pfemp1_antibody_t &pfemp1_variant, int minor_variant, int major_variant );
@@ -65,7 +65,7 @@ namespace emodlib
 
             void Update(float dt);
             void SetAntigenPresent();
-            
+
             long long get_RBC_count() const;
             float get_inv_microliters_blood() const;
             double get_RBC_availability() const;
@@ -74,12 +74,12 @@ namespace emodlib
             float get_fever_killing_rate() const;
             float get_parasite_density() const;
             float get_maternal_antibodies() const;
-            
-            
+
+
         private:
 
             float age;  // TODO: emodlib#10 (demographic components)
-            
+
             // containers for antibody objects
             int32_t m_antigenic_flag;
             float m_maternal_antibody_strength;
@@ -100,18 +100,18 @@ namespace emodlib
             float m_ind_fever_kill_rate;
             float m_cytokine_stimulation;
             float m_parasite_density;
-                        
-            
+
+
             Susceptibility();
             void Initialize();  // TODO: emodlib#9 (innate init) + emodlib#10 (demographic/transmission components)
-            
+
             void recalculateBloodCapacity( float _age );
             void updateImmunityCSP( float dt );
             void updateImmunityMSP( float dt, float& temp_cytokine_stimulation );
             void updateImmunityPfEMP1Minor( float dt );
             void updateImmunityPfEMP1Major( float dt );
             void decayAllAntibodies( float dt );
-            
+
         };
 
     }

@@ -27,7 +27,7 @@ namespace emodlib
         // MalariaStrains::Enum     Infection::params::malaria_strains = MalariaStrains::FALCIPARUM_RANDOM_STRAIN;
 
         float Infection::params::incubation_period = 7.0f; // liver stage duration
-    
+
         float Infection::params::antibody_IRBC_killrate = DEFAULT_ANTIBODY_IRBC_KILLRATE;
         float Infection::params::non_specific_antigenicity = DEFAULT_NON_SPECIFIC_ANTIGENICITY;
         float Infection::params::MSP1_merozoite_kill = DEFAULT_MSP1_MEROZOITE_KILL;
@@ -39,15 +39,15 @@ namespace emodlib
         float Infection::params::merozoites_per_schizont = DEFAULT_MEROZOITES_PER_SCHIZONT;
         float Infection::params::RBC_destruction_multiplier = DEFAULT_RBC_DESTRUCTION_MULTIPLIER;
         int   Infection::params::n_asexual_cycles_wo_gametocytes = DEFAULT_ASEXUAL_CYCLES_WITHOUT_GAMETOCYTES;
-    
-    
+
+
         suids::distributed_generator Infection::infectionSuidGenerator(0, 0);
 
-    
+
         void Infection::params::Configure(const ParamSet& pset)
         {
             incubation_period = pset["Base_Incubation_Period"].cast<float>();  // TODO: emodlib#6 (gaussian distribution)
-            
+
             antibody_IRBC_killrate = pset["Antibody_IRBC_Kill_Rate"].cast<float>();
             non_specific_antigenicity = pset["Nonspecific_Antigenicity_Factor"].cast<float>();
             MSP1_merozoite_kill = pset["MSP1_Merozoite_Kill_Fraction"].cast<float>();
@@ -60,32 +60,32 @@ namespace emodlib
             RBC_destruction_multiplier = pset["RBC_Destruction_Multiplier"].cast<float>();
             n_asexual_cycles_wo_gametocytes = pset["Number_Of_Asexual_Cycles_Without_Gametocytes"].cast<int>();
         }
-    
-    
+
+
         Infection::Infection()
             : suid(suids::nil_suid())
-    
+
             , m_liver_stage_timer(0.0f)
             , m_IRBCtimer(0.0)
             , m_hepatocytes(0)
             , m_asexual_phase(AsexualCycleStatus::NoAsexualCycle)
             , m_asexual_cycle_count(0)
-    
+
             , m_MSPtype(0)
             , m_nonspectype(0)
             , m_minor_epitope_type()
             , m_IRBCtype()
-    
+
             , m_MSP_antibody(nullptr)
             , m_PfEMP1_antibodies(CLONAL_PfEMP1_VARIANTS)
-    
+
             , m_IRBC_count(CLONAL_PfEMP1_VARIANTS)
             , m_malegametocytes()
             , m_femalegametocytes()
-    
+
             , m_gametorate(0.0)
             , m_gametosexratio(0.0)
-        
+
             , immunity(nullptr)
         {
 
@@ -95,23 +95,23 @@ namespace emodlib
         {
             Infection *newinfection = new Infection();
             newinfection->Initialize(_susceptibility, initial_hepatocytes);
-            
+
             return newinfection;
         }
-    
+
         void Infection::Initialize(Susceptibility* _susceptibility, int initial_hepatocytes)
         {
             suid = infectionSuidGenerator();  // next suid from generator
             m_hepatocytes = initial_hepatocytes;
-            
+
             // Here we set the antigenic repertoire of the infection
             // Can be completely distinct strains, or partially overlapping repertoires of antigens
             // Bull, P. C., B. S. Lowe, et al. (1998). "Parasite antigens on the infected red cell surface are targets for naturally acquired immunity to malaria." Nat Med 4(3): 358-360.
             // Recker, M., S. Nee, et al. (2004). "Transient cross-reactive immune responses can orchestrate antigenic variation in malaria." Nature 429(6991): 555-558.
             // In our model, not all antigens are expressed at the same time, but switching occurs.  This just sets the total repertoire
-                        
+
             auto rng = IntrahostComponent::p_rng;
-            
+
             m_MSPtype = rng->uniformZeroToN16(IntrahostComponent::params::falciparumMSPVars);
             m_nonspectype = rng->uniformZeroToN16(IntrahostComponent::params::falciparumNonSpecTypes);
 
@@ -120,11 +120,11 @@ namespace emodlib
                 m_IRBCtype[i] = rng->uniformZeroToN16(IntrahostComponent::params::falciparumPfEMP1Vars);
                 m_minor_epitope_type[i] = rng->uniformZeroToN16(MINOR_EPITOPE_VARS_PER_SET) + MINOR_EPITOPE_VARS_PER_SET * m_nonspectype;
             }
-            
+
             immunity = _susceptibility;
-            
+
             m_MSP_antibody = immunity->RegisterAntibody(MalariaAntibodyType::MSP1, m_MSPtype);
-            
+
             for( int ivariant = 0; ivariant < m_PfEMP1_antibodies.size(); ivariant++ )
             {
                 m_PfEMP1_antibodies[ivariant].major = nullptr;
@@ -137,16 +137,16 @@ namespace emodlib
                 }
             }
         }
-    
+
         void Infection::Update(float dt)
         {
             m_liver_stage_timer += dt;  // increment latent period
-            
+
             if (m_hepatocytes > 0)
             {
                 malariaProcessHepatocytes(dt);
             }
-            
+
             if (m_asexual_phase > AsexualCycleStatus::NoAsexualCycle)
             {
                 // do not decrement timer if it was just set by the hepatocytes this time step (asexual_phase==2), or else the timer gets decreased one timestep too many
@@ -198,7 +198,7 @@ namespace emodlib
             if (dt > 0 && immunity && m_hepatocytes > 0)
             {
                 // TODO: emodlib#4 (hepatocyte drug killing)
-                
+
                 // ----------------------------------------------------------------------------------------------------------------------
                 // --- latency in hepatocyte phase Collins, W. E. and G. M. Jeffery (1999).
                 // --- "A retrospective examination of sporozoite- and trophozoite-induced infections with Plasmodium falciparum:
@@ -227,7 +227,7 @@ namespace emodlib
                 }
             }
         }
-    
+
         void Infection::processEndOfAsexualCycle()
         {
             // Merozoite-specific antibodies can limit merozoite success--Blackman, M. J., H. G. Heidrich, et al. (1990).
@@ -237,7 +237,7 @@ namespace emodlib
 
             // Merozoite survival limited at very low density according to density-dependent probability-of-success formula
             double merozoitesurvival = std::max(0.0, (1.0 - Infection::params::MSP1_merozoite_kill * m_MSP_antibody->GetAntibodyConcentration() ) * EXPCDF(-RBCavailability / MEROZOITE_LIMITING_RBC_THRESHOLD));
-            
+
             // How many rupture for this infection handed to suscept object for total stimulation calculations
             int64_t totalIRBC = 0;
             totalIRBC = std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
@@ -250,7 +250,7 @@ namespace emodlib
             // Calculate antigenic switching and create asexual IRBCss for next asexual cycle
             // After this function, m_IRBC_count will have been updated
             malariaIRBCAntigenSwitch(merozoitesurvival);
-            
+
             totalIRBC = 0;
             //std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
             #pragma loop(hint_parallel(8))
@@ -273,7 +273,7 @@ namespace emodlib
             // increment counter of completed asexual cycles
             m_asexual_cycle_count++;
         }
-    
+
         // Calculates the antigenic switching when an asexual cycle completes and creates next generation of IRBC's
         void Infection::malariaIRBCAntigenSwitch(double merozoitesurvival)
         {
@@ -331,10 +331,10 @@ namespace emodlib
                     }
                 }
             }
-            
+
             m_IRBC_count.swap(tmpIRBCcount); // swap temporarily accumulated vector of next time step into data member
         }
-    
+
         // Moves all falciparum gametocytes forward a development stage when an asexual cycle completes, and creates the stage 0 immature gametocytes
         void Infection::malariaCycleGametocytes(double merozoitesurvival)
         {
@@ -376,7 +376,7 @@ namespace emodlib
                 }
             }
         }
-    
+
         // Calculates stimulation of immune system by malaria infection
         void Infection::malariaImmuneStimulation(float dt)
         {
@@ -386,7 +386,7 @@ namespace emodlib
                 std::cout << "Invalid input to malariaImmuneStimulation" << std::endl;
                 return;
             }
-            
+
             // antibody capacity for MSP 1 and MSP-2 are above
             // antibody capacity for the different RBC surface variants
             // transfer total IRBC to array owned by Susceptibility_Malaria, which then calculates total immune stimulation by all concurrent infections
@@ -413,7 +413,7 @@ namespace emodlib
                 }
             }
         }
-        
+
         // Calculates the IRBC killing from drugs and immune action
         void Infection::malariaImmunityIRBCKill(float dt)
         {
@@ -425,7 +425,7 @@ namespace emodlib
 
                 // Offset basic sigmoid: effect rises as basic sigmoid beginning from a fever of MIN_FEVER_DEGREES_KILLING
                 double fever_cytokine_killrate = (immunity->get_fever() > MIN_FEVER_DEGREES_KILLING) ? immunity->get_fever_killing_rate() * Sigmoid::basic_sigmoid(1.0, immunity->get_fever() - MIN_FEVER_DEGREES_KILLING) : 0.0;
-                
+
                 // TODO: emodlib#4 (asexual-stage drug killing)
                 double drug_killrate = 0;
 
@@ -436,7 +436,7 @@ namespace emodlib
 
                     // total = antibodies (major, minor, maternal) + fever + drug
                     double pkill = EXPCDF(-dt * ( (m_PfEMP1_antibodies[i].major->GetAntibodyConcentration() + Infection::params::non_specific_antigenicity * m_PfEMP1_antibodies[i].minor->GetAntibodyConcentration() + immunity->get_maternal_antibodies() ) * Infection::params::antibody_IRBC_killrate + fever_cytokine_killrate + drug_killrate));
-                    
+
                     // Now here there is an interesting issue: to save massive amounts of computational time, can use a Gaussian approximation for the true binomial, but this returns a float
                     // This is fine for large numbers of killed IRBC's, but an issue arises for small numbers
                     // big question, is 1.5 killed IRBC's 1 or 2 killed?
@@ -459,7 +459,7 @@ namespace emodlib
             }
 
         }
-    
+
         // Calculates immature gametocyte killing from drugs and immune action
         void Infection::malariaImmunityGametocyteKill(float dt)
         {
@@ -476,7 +476,7 @@ namespace emodlib
 
                     // TODO: emodlib#4 (early- and late-stage gametocyte drug killing)
                     double drug_killrate = 0;
-                    
+
                     // no randomness in gametocyte killing, but a continuity correction
                     double gametocyte_kill_fraction = EXPCDF( -dt * (fever_cytokine_killrate + drug_killrate) );
 
@@ -506,7 +506,7 @@ namespace emodlib
         }
 
         void Infection::apply_MatureGametocyteKillProbability(float pkill)
-        { 
+        {
             // Gaussian approximation of binomial errors for male and female mature gametocytes
             m_femalegametocytes[ GametocyteStages::Mature ] = ApplyKillProbability( pkill, m_femalegametocytes[ GametocyteStages::Mature ], IntrahostComponent::p_rng->eGauss() );
             m_malegametocytes[ GametocyteStages::Mature ] = ApplyKillProbability(   pkill, m_malegametocytes[   GametocyteStages::Mature ], IntrahostComponent::p_rng->eGauss() );
@@ -517,22 +517,22 @@ namespace emodlib
             // TODO: emodlib#3 (InfectionStateChange::Cleared)
             // if (hepatocytes + IRBC + gametocytes) = 0
         }
-        
+
         suids::suid Infection::GetSuid() const
         {
             return suid;
         }
-    
+
         int64_t Infection::get_MaleGametocytes(int stage) const
         {
             return m_malegametocytes[stage];
         }
-    
+
         int64_t Infection::get_FemaleGametocytes(int stage) const
         {
             return m_femalegametocytes[stage];
         }
-    
+
         float Infection::get_asexual_density() const
         {
             int64_t totalIRBC = 0;

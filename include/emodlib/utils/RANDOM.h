@@ -26,7 +26,7 @@ namespace emodlib
     // ------------------------------------------------------------------------
     class RANDOMBASE
     {
-        
+
     public:
 
         RANDOMBASE( size_t nCache );
@@ -60,7 +60,7 @@ namespace emodlib
         size_t    index;
         uint32_t* random_bits;
         float*    random_floats;
-            
+
         bool   bGauss;
         double eGauss_;
 

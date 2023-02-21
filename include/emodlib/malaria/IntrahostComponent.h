@@ -21,28 +21,28 @@ namespace emodlib
 
     namespace malaria
     {
-    
+
         class IntrahostComponent
         {
 
         public:
-            
+
             struct params
             {
                 static int randomSeed;
-                
+
                 static int max_ind_inf;
 
                 static int falciparumMSPVars;
                 static int falciparumNonSpecTypes;
                 static int falciparumPfEMP1Vars;
-                
+
                 static void Configure(const ParamSet& pset);
             };
-            
-            
+
+
             static std::shared_ptr<RANDOMBASE> p_rng;
-            
+
             static IntrahostComponent* Create();
 
             void Update(float dt);
@@ -62,7 +62,7 @@ namespace emodlib
             Susceptibility* susceptibility;
             std::list<Infection*> infections;
 
-            
+
             IntrahostComponent();
 
         };
