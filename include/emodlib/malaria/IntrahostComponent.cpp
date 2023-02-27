@@ -121,6 +121,16 @@ namespace emodlib
             return susceptibility->get_fever_celsius();
         }
 
+        Susceptibility* IntrahostComponent::GetSusceptibility() const
+        {
+            return susceptibility;
+        }
+
+        std::list<Infection*> IntrahostComponent::GetInfections() const
+        {
+            return infections;
+        }
+
     }
 
 }

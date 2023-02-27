@@ -75,6 +75,17 @@ namespace emodlib
             float get_parasite_density() const;
             float get_maternal_antibodies() const;
 
+            float get_age() const;
+            void set_age(float _age);
+
+            float get_maternal_antibody_strength() const;
+            void set_maternal_antibody_strength(float _matAb);
+
+            float get_pyrogenic_threshold() const;
+            void set_pyrogenic_threshold(float _threshold);
+
+            float get_fever_kill_rate() const;
+            void set_fever_kill_rate(float _rate);
 
         private:
 

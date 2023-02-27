@@ -560,6 +560,24 @@ namespace emodlib
             return (totalIRBC + m_hepatocytes + totalgametocytes) < 1;
         }
 
+        int32_t Infection::get_msp_type() const
+        {
+            return m_MSPtype;
+        }
+
+        std::vector<int32_t> Infection::get_pfemp1_major_types() const
+        {
+            std::vector<int32_t> vi;
+            vi.assign(m_IRBCtype, m_IRBCtype + CLONAL_PfEMP1_VARIANTS);
+            return vi;
+        }
+
+        IMalariaAntibody* Infection::get_msp_antibody() const
+        {
+            return m_MSP_antibody;
+        }
+
+
     }
 
 }

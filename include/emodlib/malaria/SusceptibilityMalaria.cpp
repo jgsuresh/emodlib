@@ -441,6 +441,45 @@ namespace emodlib
             return m_maternal_antibody_strength;
         }
 
+        float Susceptibility::get_age() const
+        {
+            return age;
+        }
+
+        void Susceptibility::set_age(float _age)
+        {
+            age = _age;
+        }
+
+        float Susceptibility::get_maternal_antibody_strength() const
+        {
+            return m_maternal_antibody_strength;
+        }
+
+        void Susceptibility::set_maternal_antibody_strength(float _matAb)
+        {
+            m_maternal_antibody_strength = _matAb;
+        }
+
+        float Susceptibility::get_pyrogenic_threshold() const
+        {
+            return m_ind_pyrogenic_threshold;
+        }
+
+        void Susceptibility::set_pyrogenic_threshold(float _threshold)
+        {
+            m_ind_pyrogenic_threshold = _threshold;
+        }
+
+        float Susceptibility::get_fever_kill_rate() const
+        {
+            return m_ind_fever_kill_rate;
+        }
+
+        void Susceptibility::set_fever_kill_rate(float _rate)
+        {
+            m_ind_fever_kill_rate = _rate;
+        }
     }
 
 }

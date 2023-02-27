@@ -1,3 +1,3 @@
-from .._emodlib_py.malaria import IntrahostComponent
+from .._emodlib_py.malaria import Infection, IntrahostComponent, Susceptibility
 
-__all__ = ["IntrahostComponent"]
+__all__ = ["IntrahostComponent", "Susceptibility", "Infection"]
