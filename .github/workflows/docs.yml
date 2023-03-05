@@ -17,6 +17,9 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Build and install
+      run: pip3 install --verbose .[test]
+
     - name: Install requirements
       run: |
         pip3 install sphinx-rtd-theme
