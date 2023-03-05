@@ -33,6 +33,8 @@ namespace emodlib
 
             virtual MalariaAntibodyType::Enum GetAntibodyType() const = 0;
             virtual int GetAntibodyVariant() const = 0;
+
+            virtual ~IMalariaAntibody(){};
         };
 
         typedef struct
