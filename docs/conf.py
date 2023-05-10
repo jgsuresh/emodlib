@@ -1,4 +1,8 @@
+from datetime import datetime
+
 import sphinx_rtd_theme
+
+import emodlib
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -9,16 +13,19 @@ import sphinx_rtd_theme
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'emodlib'
-copyright = '2023, Edward Wenger'
-author = 'Edward Wenger'
-release = 'v0.0.2'
+copyright = f'{datetime.today().year}, Bill & Melinda Gates Foundation. All rights reserved.\nThese docs were built for emodlib version {emodlib.__version__}'
+author = 'Institute for Disease Modeling'
+version = emodlib.__version__
+release = emodlib.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_rtd_theme",
-    "sphinx.ext.autodoc"
+    'sphinx_rtd_theme',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',  # Add a link to the Python source code for classes, functions etc.
+    'nbsphinx',
     ]
 
 templates_path = ['_templates']

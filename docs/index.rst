@@ -11,6 +11,7 @@ Welcome to emodlib's documentation!
    :caption: Contents:
 
    modules.rst
+   tutorials.rst
 
 Indices and tables
 ==================

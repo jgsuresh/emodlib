@@ -17,16 +17,13 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Build and install
+    - name: Build and install emodlib
       run: pip3 install --verbose .[test]
 
-    - name: Install requirements
-      run: |
-        pip3 install sphinx-rtd-theme
-
-    - name: Build docs
+    - name: Install requirements + build docs
       run: |
         cd docs
+        pip3 install -r requirements.txt
         make html
 
     # https://github.com/peaceiris/actions-gh-pages

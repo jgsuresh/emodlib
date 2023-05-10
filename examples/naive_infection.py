@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -37,7 +39,7 @@ def run_challenge(duration):
 
 
 if __name__ == "__main__":
-    configure_from_file("config.yaml")
+    configure_from_file(os.path.join(os.path.dirname(__file__), "config.yml"))
 
     df = run_challenge(duration=300)
     print(df.head(10))

@@ -16,7 +16,7 @@ def describe(c, t=None):
 
 def params_from_test_file():
     with open(
-        os.path.join(os.path.realpath(os.path.dirname(__file__)), "config.yaml")
+        os.path.join(os.path.realpath(os.path.dirname(__file__)), "config.yml")
     ) as cfg:
         params = yaml.load(cfg, Loader=yaml.FullLoader)
 
