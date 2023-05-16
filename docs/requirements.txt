@@ -1,4 +1,4 @@
-sphinx-rtd-theme
 nbsphinx
 pandoc
 pypandoc
+sphinx-rtd-theme

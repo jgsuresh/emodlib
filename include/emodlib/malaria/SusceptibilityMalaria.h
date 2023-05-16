@@ -47,10 +47,6 @@ namespace emodlib
                 static float pyrogenic_threshold;
                 static float fever_IRBC_killrate;
 
-                // ... infectiousness calculations
-                // static float base_gametocyte_mosquito_survival;  // TODO: emodlib#7 (infectiousness calculations)
-                // static float cytokine_gametocyte_inactivation;
-
                 // ... red blood cell effects
                 static float erythropoiesis_anemia_effect;
 
@@ -71,6 +67,7 @@ namespace emodlib
             double get_RBC_availability() const;
             float get_fever() const;
             float get_fever_celsius() const;
+            float get_cytokines() const;
             float get_fever_killing_rate() const;
             float get_parasite_density() const;
             float get_maternal_antibodies() const;

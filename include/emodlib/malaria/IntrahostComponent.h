@@ -37,6 +37,10 @@ namespace emodlib
                 static int falciparumNonSpecTypes;
                 static int falciparumPfEMP1Vars;
 
+                // ... infectiousness calculations
+                static float base_gametocyte_mosquito_survival;  // TODO: emodlib#7 (infectiousness calculations)
+                static float cytokine_gametocyte_inactivation;
+
                 static void Configure(const ParamSet& pset);
             };
 
@@ -55,6 +59,8 @@ namespace emodlib
             float GetParasiteDensity() const;
             float GetGametocyteDensity() const;
             float GetFeverTemperature() const;
+
+            float GetInfectiousness() const;
 
             Susceptibility* GetSusceptibility() const;
             std::list<Infection*> GetInfections() const;

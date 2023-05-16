@@ -6,6 +6,9 @@
 
 #include "IntrahostComponent.h"
 
+#include "emodlib/utils/Common.h"
+#include "emodlib/utils/Sigmoid.h"
+
 
 namespace emodlib
 {
@@ -22,6 +25,9 @@ namespace emodlib
         int IntrahostComponent::params::falciparumNonSpecTypes = DEFAULT_NONSPECIFIC_TYPES;
         int IntrahostComponent::params::falciparumPfEMP1Vars = DEFAULT_PFEMP1_VARIANTS;
 
+        // TODO: emodlib#7 (infectiousness calculations)
+        float  IntrahostComponent::params::base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
+        float  IntrahostComponent::params::cytokine_gametocyte_inactivation  = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
 
         std::shared_ptr<RANDOMBASE> IntrahostComponent::p_rng = nullptr;
 
@@ -36,6 +42,10 @@ namespace emodlib
             falciparumMSPVars = pset["Falciparum_MSP_Variants"].cast<int>();
             falciparumNonSpecTypes = pset["Falciparum_Nonspecific_Types"].cast<int>();
             falciparumPfEMP1Vars = pset["Falciparum_PfEMP1_Variants"].cast<int>();
+
+            // TODO: emodlib#7 (infectiousness calculations)
+            base_gametocyte_mosquito_survival = pset["Base_Gametocyte_Mosquito_Survival_Rate"].cast<float>();
+            cytokine_gametocyte_inactivation = pset["Cytokine_Gametocyte_Inactivation"].cast<float>();
 
             Infection::params::Configure(pset["infection_params"]);
             Susceptibility::params::Configure(pset["susceptibility_params"]);
@@ -119,6 +129,13 @@ namespace emodlib
         float IntrahostComponent::GetFeverTemperature() const
         {
             return susceptibility->get_fever_celsius();
+        }
+
+        float IntrahostComponent::GetInfectiousness() const
+        {
+            float cytokines = susceptibility->get_cytokines();
+            double fever_effect = Sigmoid::basic_sigmoid(params::cytokine_gametocyte_inactivation, cytokines);
+            return EXPCDF(-GetGametocyteDensity() * MICROLITERS_PER_BLOODMEAL * params::base_gametocyte_mosquito_survival * (1.0 - fever_effect));
         }
 
         Susceptibility* IntrahostComponent::GetSusceptibility() const

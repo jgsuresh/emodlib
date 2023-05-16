@@ -80,6 +80,8 @@ void add_malaria_bindings(py::module& m) {
         .def_property_readonly("gametocyte_density", &IntrahostComponent::GetGametocyteDensity)
         .def_property_readonly("fever_temperature", &IntrahostComponent::GetFeverTemperature)
 
+        .def_property_readonly("infectiousness", &IntrahostComponent::GetInfectiousness)
+
         .def_property_readonly("susceptibility", &IntrahostComponent::GetSusceptibility)
         .def_property_readonly("infections", &IntrahostComponent::GetInfections);
 

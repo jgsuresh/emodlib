@@ -41,10 +41,6 @@ namespace emodlib
         float  Susceptibility::params::pyrogenic_threshold               = 1000.0f;
         float  Susceptibility::params::fever_IRBC_killrate               = DEFAULT_FEVER_IRBC_KILL_RATE;
 
-        // TODO: emodlib#7 (infectiousness calculations)
-        // float  Susceptibility::params::base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
-        // float  Susceptibility::params::cytokine_gametocyte_inactivation  = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
-
         float  Susceptibility::params::erythropoiesis_anemia_effect      = 3.5f;
 
 
@@ -63,10 +59,6 @@ namespace emodlib
 
             pyrogenic_threshold = pset["Pyrogenic_Threshold"].cast<float>();
             fever_IRBC_killrate = pset["Fever_IRBC_Kill_Rate"].cast<float>();
-
-            // TODO: emodlib#7 (infectiousness calculations)
-            // base_gametocyte_mosquito_survival = pset["Base_Gametocyte_Mosquito_Survival_Rate"].cast<float>();
-            // cytokine_gametocyte_inactivation = pset["Cytokine_Gametocyte_Inactivation"].cast<float>();
 
             erythropoiesis_anemia_effect = pset["Erythropoiesis_Anemia_Effect"].cast<float>();
         }
@@ -424,6 +416,11 @@ namespace emodlib
         float Susceptibility::get_fever_celsius() const
         {
             return 37.0f + get_fever();
+        }
+
+        float Susceptibility::get_cytokines() const
+        {
+            return m_cytokines;
         }
 
         float Susceptibility::get_fever_killing_rate() const

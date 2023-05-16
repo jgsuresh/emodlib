@@ -16,7 +16,13 @@ def describe(c, t=None):
 
 def params_from_test_file():
     with open(
-        os.path.join(os.path.realpath(os.path.dirname(__file__)), "config.yml")
+        os.path.join(
+            os.path.realpath(os.path.dirname(__file__)),
+            "..",
+            "docs",
+            "tutorials",
+            "config.yml",
+        )
     ) as cfg:
         params = yaml.load(cfg, Loader=yaml.FullLoader)
 
@@ -49,6 +55,7 @@ def test_bindings():
 
     assert ic.parasite_density > 0
     assert ic.gametocyte_density > 0
+    assert ic.infectiousness > 0
 
     assert ic.infections[0].msp_antibody.antibody_capacity > 0
     assert ic.infections[0].msp_antibody.antibody_concentration > 0
