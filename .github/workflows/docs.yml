@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+    - name: Install pandoc
+      run: apt install pandoc
+
     - uses: actions/checkout@v3
 
     - name: Install Python
