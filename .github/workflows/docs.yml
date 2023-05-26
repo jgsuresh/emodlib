@@ -11,7 +11,7 @@ jobs:
     steps:
 
     - name: Install pandoc
-      run: apt install pandoc
+      run: sudo apt install pandoc
 
     - uses: actions/checkout@v3
 
