@@ -1,20 +1,8 @@
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import yaml
 
 from emodlib.malaria import IntrahostComponent
-
-
-def configure_from_file(config_path):
-    with open(config_path) as cfg:
-        params = yaml.load(cfg, Loader=yaml.FullLoader)
-
-    print(yaml.dump(params))
-
-    IntrahostComponent.configure(params)
 
 
 def run_challenge(duration):
@@ -45,9 +33,7 @@ def run_challenge(duration):
 
 
 if __name__ == "__main__":
-    configure_from_file(
-        os.path.join(os.path.dirname(__file__), "..", "docs", "tutorials", "config.yml")
-    )
+    IntrahostComponent.set_params()  # default params
 
     df = run_challenge(duration=300)
     print(df.head(10))

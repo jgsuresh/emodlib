@@ -25,7 +25,8 @@ classifiers = [
 dependencies = ["pyyaml"]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "matplotlib", "numpy", "pandas", "xarray", "optuna", "ipywidgets", "plotly"]
+dev = ["nox", "pytest"]
 
 
 [tool.scikit-build]

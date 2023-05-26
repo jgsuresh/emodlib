@@ -552,7 +552,7 @@ namespace emodlib
             totalIRBC = std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
 
             int64_t totalgametocytes = 0;
-            for (int i = 0; i < GametocyteStages::Mature; i++)
+            for (int i = 0; i <= GametocyteStages::Mature; i++)
             {
                 totalgametocytes += m_malegametocytes[i] + m_femalegametocytes[i];
             }

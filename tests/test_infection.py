@@ -1,14 +1,11 @@
 import pytest
-from test_host import params_from_test_file
 
 from emodlib.malaria import Infection, IntrahostComponent, Susceptibility
 
 
 @pytest.fixture
 def params():
-    p = params_from_test_file()
-    IntrahostComponent.configure(p)  # required for Infection::Initialize params?
-    return p
+    return IntrahostComponent.params
 
 
 @pytest.fixture
