@@ -21,7 +21,7 @@ jobs:
         python-version: 3.9
 
     - name: Build and install emodlib
-      run: pip3 install --verbose .[test]
+      run: pip3 install --verbose .[full]
 
     - name: Install requirements + build docs
       run: |
