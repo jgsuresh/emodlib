@@ -118,8 +118,18 @@ void add_malaria_bindings(py::module& m) {
 
           .def_property("fever_kill_rate",
                         &Susceptibility::get_fever_kill_rate,
-                        &Susceptibility::set_fever_kill_rate);
+                        &Susceptibility::set_fever_kill_rate)
 
+          .def("get_active_PfEMP1_major_antibodies",
+               [](Susceptibility &self) {
+                   std::vector<IMalariaAntibody*> antibodies = self.get_active_PfEMP1_major_antibodies();
+                   py::list py_antibodies;
+                   for (auto antibody : antibodies) {
+                       py_antibodies.append(py::cast(antibody));
+                   }
+                   return py_antibodies;
+               },
+               "Get the active PfEMP1 major antibodies");
 
      py::class_<Infection> (m, "Infection")
 
@@ -144,7 +154,10 @@ void add_malaria_bindings(py::module& m) {
           .def_property_readonly("msp_antibody", &Infection::get_msp_antibody);
 
 
-     py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody");
+     py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody")
+          .def_property_readonly("antigen_count", &IMalariaAntibody::GetAntigenCount)
+          .def_property_readonly("antibody_capacity", &IMalariaAntibody::GetAntibodyCapacity)
+          .def_property_readonly("antibody_concentration", &IMalariaAntibody::GetAntibodyConcentration);
 
      py::class_<MalariaAntibody, IMalariaAntibody, PyMalariaAntibody<>> (m, "MalariaAntibody")
           .def_property_readonly("antigen_count", &MalariaAntibody::GetAntigenCount)

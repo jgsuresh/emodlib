@@ -84,6 +84,9 @@ namespace emodlib
             float get_fever_kill_rate() const;
             void set_fever_kill_rate(float _rate);
 
+            std::vector<IMalariaAntibody*> get_active_PfEMP1_major_antibodies() const;
+
+
         private:
 
             float age;  // TODO: emodlib#10 (demographic components)
@@ -95,6 +98,7 @@ namespace emodlib
             std::vector<IMalariaAntibody*> m_active_MSP_antibodies;
             std::vector<IMalariaAntibody*> m_active_PfEMP1_minor_antibodies;
             std::vector<IMalariaAntibody*> m_active_PfEMP1_major_antibodies;
+
 
             // RBC information
             int64_t m_RBC;

@@ -477,6 +477,11 @@ namespace emodlib
         {
             m_ind_fever_kill_rate = _rate;
         }
+
+        std::vector<IMalariaAntibody*> Susceptibility::get_active_PfEMP1_major_antibodies() const
+        {
+            return m_active_PfEMP1_major_antibodies;
+        }
     }
 
 }
