@@ -6,6 +6,7 @@ find_package(pybind11 CONFIG REQUIRED)
 
 # emodlib src files
 set(EMODLIB_OBJECTS
+    ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/MalariaConfig.cpp
     ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/InfectionMalaria.cpp
     ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/SusceptibilityMalaria.cpp
     ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/IntrahostComponent.cpp

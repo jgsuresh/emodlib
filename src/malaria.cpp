@@ -6,6 +6,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "emodlib/malaria/MalariaConfig.h"
 #include "emodlib/malaria/IntrahostComponent.h"
 #include "emodlib/malaria/MalariaAntibody.h"
 
@@ -51,15 +52,63 @@ void add_malaria_bindings(py::module& m) {
     using namespace py::literals;
 
 
+    // ==== Binding of the MalariaConfig ==== //
+    py::class_<MalariaConfig, std::shared_ptr<MalariaConfig>> (m, "MalariaConfig", py::dynamic_attr())
+
+        .def(py::init<>())
+
+        .def("configure", &MalariaConfig::Configure,
+             "Configure from a ParamSet dictionary",
+             "pset"_a)
+
+        .def_static("from_params", &MalariaConfig::FromParamSet,
+                    "Create a configured MalariaConfig from a ParamSet dictionary",
+                    "pset"_a)
+
+        // IntrahostComponent-level params
+        .def_readwrite("random_seed", &MalariaConfig::randomSeed)
+        .def_readwrite("max_ind_inf", &MalariaConfig::max_ind_inf)
+        .def_readwrite("falciparum_MSP_variants", &MalariaConfig::falciparumMSPVars)
+        .def_readwrite("falciparum_nonspecific_types", &MalariaConfig::falciparumNonSpecTypes)
+        .def_readwrite("falciparum_PfEMP1_variants", &MalariaConfig::falciparumPfEMP1Vars)
+        .def_readwrite("base_gametocyte_mosquito_survival", &MalariaConfig::base_gametocyte_mosquito_survival)
+        .def_readwrite("cytokine_gametocyte_inactivation", &MalariaConfig::cytokine_gametocyte_inactivation)
+
+        // Susceptibility params
+        .def_readwrite("memory_level", &MalariaConfig::memory_level)
+        .def_readwrite("hyperimmune_decay_rate", &MalariaConfig::hyperimmune_decay_rate)
+        .def_readwrite("MSP1_antibody_growthrate", &MalariaConfig::MSP1_antibody_growthrate)
+        .def_readwrite("antibody_stimulation_c50", &MalariaConfig::antibody_stimulation_c50)
+        .def_readwrite("antibody_capacity_growthrate", &MalariaConfig::antibody_capacity_growthrate)
+        .def_readwrite("minimum_adapted_response", &MalariaConfig::minimum_adapted_response)
+        .def_readwrite("non_specific_growth", &MalariaConfig::non_specific_growth)
+        .def_readwrite("antibody_csp_decay_days", &MalariaConfig::antibody_csp_decay_days)
+        .def_readwrite("maternal_antibody_decay_rate", &MalariaConfig::maternal_antibody_decay_rate)
+        .def_readwrite("pyrogenic_threshold", &MalariaConfig::pyrogenic_threshold)
+        .def_readwrite("fever_IRBC_killrate", &MalariaConfig::fever_IRBC_killrate)
+        .def_readwrite("erythropoiesis_anemia_effect", &MalariaConfig::erythropoiesis_anemia_effect)
+
+        // Infection params
+        .def_readwrite("incubation_period", &MalariaConfig::incubation_period)
+        .def_readwrite("antibody_IRBC_killrate", &MalariaConfig::antibody_IRBC_killrate)
+        .def_readwrite("non_specific_antigenicity", &MalariaConfig::non_specific_antigenicity)
+        .def_readwrite("MSP1_merozoite_kill", &MalariaConfig::MSP1_merozoite_kill)
+        .def_readwrite("gametocyte_stage_survival", &MalariaConfig::gametocyte_stage_survival)
+        .def_readwrite("base_gametocyte_sexratio", &MalariaConfig::base_gametocyte_sexratio)
+        .def_readwrite("base_gametocyte_production", &MalariaConfig::base_gametocyte_production)
+        .def_readwrite("antigen_switch_rate", &MalariaConfig::antigen_switch_rate)
+        .def_readwrite("merozoites_per_hepatocyte", &MalariaConfig::merozoites_per_hepatocyte)
+        .def_readwrite("merozoites_per_schizont", &MalariaConfig::merozoites_per_schizont)
+        .def_readwrite("RBC_destruction_multiplier", &MalariaConfig::RBC_destruction_multiplier)
+        .def_readwrite("n_asexual_cycles_wo_gametocytes", &MalariaConfig::n_asexual_cycles_wo_gametocytes);
+
+
     // ==== Binding of the intrahost component ==== //
     py::class_<IntrahostComponent> (m, "IntrahostComponent")
 
-        .def_static("create", &IntrahostComponent::Create)
-
-        .def_static("_configure_from_params",
-                    &IntrahostComponent::params::Configure,
-                    "Configure the IntrahostComponent params from a ParamSet dictionary",
-                    "pset"_a)
+        .def_static("create", &IntrahostComponent::Create,
+                    "Create an IntrahostComponent with the given configuration",
+                    "config"_a)
 
         .def("update",
              &IntrahostComponent::Update,
@@ -94,12 +143,9 @@ void add_malaria_bindings(py::module& m) {
 
     py::class_<Susceptibility> (m, "Susceptibility")
 
-          .def_static("create", &Susceptibility::Create)
-
-          .def_static("configure",
-                      &Susceptibility::params::Configure,
-                      "Configure the Susceptibility params from a ParamSet dictionary",
-                      "pset"_a)
+          .def_static("create", &Susceptibility::Create,
+                      "Create a Susceptibility with the given configuration",
+                      "config"_a)
 
           .def("update",
                &Susceptibility::Update,
@@ -124,13 +170,8 @@ void add_malaria_bindings(py::module& m) {
      py::class_<Infection> (m, "Infection")
 
           .def_static("create", &Infection::Create,
-               "Create an Infection object with pointer to Susceptibility",
-               "susceptibility"_a, "hepatocytes"_a=1)
-
-          .def_static("configure",
-                      &Infection::params::Configure,
-                      "Configure the Infection params from a ParamSet dictionary",
-                      "pset"_a)
+               "Create an Infection object with pointer to Susceptibility and configuration",
+               "susceptibility"_a, "config"_a, "hepatocytes"_a=1)
 
           .def("update",
                &Infection::Update,

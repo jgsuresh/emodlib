@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "emodlib/ParamSet.h"
+#include <vector>
+
 #include "emodlib/utils/suids.hpp"
 
 #include "Malaria.h"
@@ -20,6 +21,7 @@ namespace emodlib
     namespace malaria
     {
 
+        struct MalariaConfig;  // forward declaration
         class Susceptibility;
 
         class Infection
@@ -27,33 +29,7 @@ namespace emodlib
 
         public:
 
-            struct params
-            {
-                // TODO: emodlib#8 (boost + enums)
-                // static ParasiteSwitchType::Enum parasite_switch_type;
-                // static MalariaStrains::Enum     malaria_strains;
-
-                static float incubation_period;
-                static float antibody_IRBC_killrate;
-                static float non_specific_antigenicity;
-                static float MSP1_merozoite_kill;
-                static float gametocyte_stage_survival;
-                static float base_gametocyte_sexratio;
-                static float base_gametocyte_production;
-                static float antigen_switch_rate;
-                static float merozoites_per_hepatocyte;
-                static float merozoites_per_schizont;
-                static float RBC_destruction_multiplier;
-                static int   n_asexual_cycles_wo_gametocytes;
-
-                static void Configure(const ParamSet& pset);
-            };
-
-
-            static suids::distributed_generator infectionSuidGenerator;
-
-
-            static Infection *Create(Susceptibility* _susceptibility, int initial_hepatocytes=1);
+            static Infection *Create(Susceptibility* _susceptibility, MalariaConfig* config, int initial_hepatocytes=1);
 
             void Update(float dt);
 
@@ -96,9 +72,10 @@ namespace emodlib
             double m_gametosexratio;
 
             Susceptibility* immunity;
+            MalariaConfig* m_config;  // non-owning pointer to configuration
 
 
-            Infection();
+            Infection(MalariaConfig* config);
             void Initialize(Susceptibility* _susceptibility, int initial_hepatocytes);
 
             void malariaProcessHepatocytes(float dt);

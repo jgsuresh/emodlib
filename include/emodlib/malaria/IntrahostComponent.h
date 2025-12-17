@@ -9,9 +9,7 @@
 #include <list>
 #include <memory>
 
-#include "emodlib/ParamSet.h"
-#include "emodlib/utils/RANDOM.h"
-
+#include "MalariaConfig.h"
 #include "InfectionMalaria.h"
 #include "SusceptibilityMalaria.h"
 
@@ -27,27 +25,7 @@ namespace emodlib
 
         public:
 
-            struct params
-            {
-                static int randomSeed;
-
-                static int max_ind_inf;
-
-                static int falciparumMSPVars;
-                static int falciparumNonSpecTypes;
-                static int falciparumPfEMP1Vars;
-
-                // ... infectiousness calculations
-                static float base_gametocyte_mosquito_survival;  // TODO: emodlib#7 (infectiousness calculations)
-                static float cytokine_gametocyte_inactivation;
-
-                static void Configure(const ParamSet& pset);
-            };
-
-
-            static std::shared_ptr<RANDOMBASE> p_rng;
-
-            static IntrahostComponent* Create();
+            static IntrahostComponent* Create(std::shared_ptr<MalariaConfig> config);
 
             void Update(float dt);
 
@@ -65,13 +43,16 @@ namespace emodlib
             Susceptibility* GetSusceptibility() const;
             std::list<Infection*> GetInfections() const;
 
+            std::shared_ptr<MalariaConfig> GetConfig() const;
+
         private:
 
+            std::shared_ptr<MalariaConfig> m_config;
             Susceptibility* susceptibility;
             std::list<Infection*> infections;
 
 
-            IntrahostComponent();
+            IntrahostComponent(std::shared_ptr<MalariaConfig> config);
 
         };
 

@@ -2,16 +2,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from emodlib.malaria import IntrahostComponent
+from emodlib.malaria import IntrahostComponent, create_config
 
 
-def run_challenge(duration):
+def run_challenge(config, duration):
     asexuals = np.zeros(duration)
     gametocytes = np.zeros(duration)
     fevers = np.zeros(duration)
     infects = np.zeros(duration)
 
-    ic = IntrahostComponent.create()
+    ic = IntrahostComponent.create(config)
     ic.challenge()
 
     for t in range(duration):
@@ -33,9 +33,9 @@ def run_challenge(duration):
 
 
 if __name__ == "__main__":
-    IntrahostComponent.set_params()  # default params
+    config = create_config()  # default params
 
-    df = run_challenge(duration=300)
+    df = run_challenge(config, duration=300)
     print(df.head(10))
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 3))

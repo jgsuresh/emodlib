@@ -1,10 +1,11 @@
 import pytest
 
-from emodlib.malaria import IntrahostComponent, Susceptibility
+from emodlib.malaria import IntrahostComponent, Susceptibility, create_config
 
 
 def test_aging():
-    s = Susceptibility.create()
+    config = create_config()
+    s = Susceptibility.create(config)
 
     s.age = 30
     print("immune system age = %d days" % s.age)
@@ -16,7 +17,8 @@ def test_aging():
 
 
 def test_maternal_antibodies():
-    s = Susceptibility.create()
+    config = create_config()
+    s = Susceptibility.create(config)
 
     s.maternal_antibody_strength = 0.8
 
@@ -31,10 +33,10 @@ def test_maternal_antibodies():
 
 
 def test_immune_init():
-    print("Set default parameters...")
-    IntrahostComponent.set_params()
+    print("Create config...")
+    config = create_config()
 
-    ic = IntrahostComponent.create()
+    ic = IntrahostComponent.create(config)
     s = ic.susceptibility
 
     print("immune system age = %d days" % s.age)

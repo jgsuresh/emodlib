@@ -41,19 +41,3 @@ def deep_update(
             else:
                 updated_mapping[k] = v
     return Params(updated_mapping)
-
-
-@classmethod
-def update_params(cls, params={}):
-    """Nested update on top of current parameters"""
-    cfg = deep_update(cls.params, params)
-    cls.params = cfg
-    cls._configure_from_params(cfg)  # setting static variables in bound C++ classes
-
-
-@classmethod
-def set_params(cls, params={}):
-    """Nested update on top of default parameters"""
-    cfg = deep_update(cls.default_params, params)
-    cls.params = cfg
-    cls._configure_from_params(cfg)  # setting static variables in bound C++ classes

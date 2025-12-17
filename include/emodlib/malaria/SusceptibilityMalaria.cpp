@@ -12,6 +12,7 @@
 #include "emodlib/utils/Sigmoid.h"
 #include "Malaria.h"
 
+#include "MalariaConfig.h"
 #include "MalariaAntibody.h"
 
 
@@ -21,51 +22,9 @@ namespace emodlib
     namespace malaria
     {
 
-        float  Susceptibility::params::memory_level                      = 0.2f;
-        float  Susceptibility::params::hyperimmune_decay_rate            = 0.0f;
-        float  Susceptibility::params::MSP1_antibody_growthrate          = 0.02f;
-        float  Susceptibility::params::antibody_stimulation_c50          = 10.0f;
-        float  Susceptibility::params::antibody_capacity_growthrate      = 0.1f;
-        float  Susceptibility::params::minimum_adapted_response          = 0.02f;
-        float  Susceptibility::params::non_specific_growth               = 0.5f;
-        float  Susceptibility::params::antibody_csp_decay_days           = DEFAULT_ANTIBODY_CSP_DECAY_DAYS;
-
-        // TODO: emodlib#9 (maternal antibody init) + emodlib#8 (boost + enums)
-        // bool   Susceptibility::params::enable_maternal_antibodies_transmission  = false;
-        // MaternalAntibodiesType::Enum Susceptibility::params::maternal_antibodies_type = MaternalAntibodiesType::OFF;
-        // float  Susceptibility::params::maternal_antibody_protection      = 0.1f;
-        float  Susceptibility::params::maternal_antibody_decay_rate      = 0.01f;
-
-        // TODO: emodlib#9 (innate heterogeneity init) + emodlib#8 (boost + enums)
-        // InnateImmuneVariationType::Enum Susceptibility::params::innate_immune_variation_type = InnateImmuneVariationType::NONE;
-        float  Susceptibility::params::pyrogenic_threshold               = 1000.0f;
-        float  Susceptibility::params::fever_IRBC_killrate               = DEFAULT_FEVER_IRBC_KILL_RATE;
-
-        float  Susceptibility::params::erythropoiesis_anemia_effect      = 3.5f;
-
-
-        void Susceptibility::params::Configure(const ParamSet& pset)
-        {
-            memory_level = pset["Antibody_Memory_Level"].cast<float>();
-            hyperimmune_decay_rate = -log((0.4f - memory_level) / (1.0f - memory_level)) / 120.0f;  // This sets the decay rate towards memory level so that the decay from antibody levels of 1 to levels of 0.4 is consistent
-            MSP1_antibody_growthrate = pset["Max_MSP1_Antibody_Growthrate"].cast<float>();
-            antibody_stimulation_c50 = pset["Antibody_Stimulation_C50"].cast<float>();
-            antibody_capacity_growthrate = pset["Antibody_Capacity_Growth_Rate"].cast<float>();
-            minimum_adapted_response = pset["Min_Adapted_Response"].cast<float>();
-            non_specific_growth = pset["Nonspecific_Antibody_Growth_Rate_Factor"].cast<float>();
-            antibody_csp_decay_days = pset["Antibody_CSP_Decay_Days"].cast<float>();
-
-            maternal_antibody_decay_rate = pset["Maternal_Antibody_Decay_Rate"].cast<float>();
-
-            pyrogenic_threshold = pset["Pyrogenic_Threshold"].cast<float>();
-            fever_IRBC_killrate = pset["Fever_IRBC_Kill_Rate"].cast<float>();
-
-            erythropoiesis_anemia_effect = pset["Erythropoiesis_Anemia_Effect"].cast<float>();
-        }
-
-
-        Susceptibility::Susceptibility()
-            : age(0)
+        Susceptibility::Susceptibility(MalariaConfig* config)
+            : m_config(config)
+            , age(0)
 
             , m_antigenic_flag(0)
             , m_maternal_antibody_strength(0)
@@ -88,9 +47,9 @@ namespace emodlib
 
         }
 
-        Susceptibility* Susceptibility::Create()
+        Susceptibility* Susceptibility::Create(MalariaConfig* config)
         {
-            Susceptibility *newsusceptibility = new Susceptibility();
+            Susceptibility *newsusceptibility = new Susceptibility(config);
             newsusceptibility->Initialize();
 
             return newsusceptibility;
@@ -108,12 +67,12 @@ namespace emodlib
 
             // Track individual pyrogenic thresholds + fever killing rates as instance variables
             // TODO: emodlib#9 (innate heterogeneity init)
-            m_ind_pyrogenic_threshold = params::pyrogenic_threshold;
-            m_ind_fever_kill_rate = params::fever_IRBC_killrate;
+            m_ind_pyrogenic_threshold = m_config->pyrogenic_threshold;
+            m_ind_fever_kill_rate = m_config->fever_IRBC_killrate;
 
             // TODO: emodlib#9 (maternal antibody init)
 
-            m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(0);
+            m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(m_config, 0);
 
             // MSP + PfEMP1 antibodies are added upon infection
         }
@@ -121,7 +80,6 @@ namespace emodlib
         IMalariaAntibody* Susceptibility::RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity)
         {
             std::vector<IMalariaAntibody*> *variant_vector;
-            IMalariaAntibody* (*typed_create_antibody)(int,float);
 
             switch( type )
             {
@@ -130,17 +88,14 @@ namespace emodlib
 
             case MalariaAntibodyType::MSP1:
                 variant_vector = &m_active_MSP_antibodies;
-                typed_create_antibody = MalariaAntibodyMSP::CreateAntibody;
                 break;
 
             case MalariaAntibodyType::PfEMP1_minor:
                 variant_vector = &m_active_PfEMP1_minor_antibodies;
-                typed_create_antibody = MalariaAntibodyPfEMP1Minor::CreateAntibody;
                 break;
 
             case MalariaAntibodyType::PfEMP1_major:
                 variant_vector = &m_active_PfEMP1_major_antibodies;
-                typed_create_antibody = MalariaAntibodyPfEMP1Major::CreateAntibody;
                 break;
 
             default:
@@ -160,7 +115,20 @@ namespace emodlib
 
             if (antibody == nullptr) // make a new antibody if it hasn't been created yet
             {
-                antibody = typed_create_antibody(variant, capacity);
+                switch( type )
+                {
+                case MalariaAntibodyType::MSP1:
+                    antibody = MalariaAntibodyMSP::CreateAntibody(m_config, variant, capacity);
+                    break;
+                case MalariaAntibodyType::PfEMP1_minor:
+                    antibody = MalariaAntibodyPfEMP1Minor::CreateAntibody(m_config, variant, capacity);
+                    break;
+                case MalariaAntibodyType::PfEMP1_major:
+                    antibody = MalariaAntibodyPfEMP1Major::CreateAntibody(m_config, variant, capacity);
+                    break;
+                default:
+                    break;
+                }
                 variant_vector->push_back(antibody);
             }
 
@@ -192,10 +160,10 @@ namespace emodlib
             recalculateBloodCapacity(age);
 
             // Red blood cell dynamics
-            if (Susceptibility::params::erythropoiesis_anemia_effect > 0)
+            if (m_config->erythropoiesis_anemia_effect > 0)
             {
                 // This is the amount of "erythropoietin", assume absolute amounts of erythropoietin correlate linearly with absolute increases in hemoglobin
-                float anemia_erythropoiesis_multiplier = exp( Susceptibility::params::erythropoiesis_anemia_effect * (1 - get_RBC_availability()) );
+                float anemia_erythropoiesis_multiplier = exp( m_config->erythropoiesis_anemia_effect * (1 - get_RBC_availability()) );
                 m_RBC = int64_t(m_RBC - (m_RBC * .00833 - m_RBCproduction * anemia_erythropoiesis_multiplier) * dt); // *.00833 ==/120 (AVERAGE_RBC_LIFESPAN)
             }
             else
@@ -211,7 +179,7 @@ namespace emodlib
             m_parasite_density = 0; // this is accumulated in updateImmunityPfEMP1Minor
 
             // decay maternal antibodies
-            m_maternal_antibody_strength -= dt * m_maternal_antibody_strength * Susceptibility::params::maternal_antibody_decay_rate;
+            m_maternal_antibody_strength -= dt * m_maternal_antibody_strength * m_config->maternal_antibody_decay_rate;
             if ( m_maternal_antibody_strength < 0 ) { m_maternal_antibody_strength = 0; }
 
             // antibody capacities increase and antibodies released if antigen present, only process if antigens are present at all
@@ -476,6 +444,11 @@ namespace emodlib
         void Susceptibility::set_fever_kill_rate(float _rate)
         {
             m_ind_fever_kill_rate = _rate;
+        }
+
+        MalariaConfig* Susceptibility::GetConfig() const
+        {
+            return m_config;
         }
     }
 

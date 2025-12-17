@@ -3,7 +3,7 @@ import os
 import pytest
 import yaml
 
-from emodlib.malaria import IntrahostComponent
+from emodlib.malaria import IntrahostComponent, create_config
 
 
 def describe(c, t=None):
@@ -34,31 +34,29 @@ def test_config():
     print("Load default model parameters...\n")
     params = params_from_default_file()
 
-    assert IntrahostComponent.params["Run_Number"] == params["Run_Number"]
+    # Test that we can create a config and modify it
+    config = create_config()
+    assert config.random_seed == params["Run_Number"]
 
     run_number = 123456
-    params["Run_Number"] = run_number
+    config2 = create_config({'Run_Number': run_number})
+    assert config2.random_seed == run_number
 
-    print("Update nested parameters...")
-    IntrahostComponent.update_params(
-        dict(Run_Number=run_number, infection_params=dict(Merozoites_Per_Schizont=10))
-    )
-    assert IntrahostComponent.params["Run_Number"] == run_number
-    assert (
-        IntrahostComponent.params["infection_params"]["Merozoites_Per_Schizont"] == 10
-    )
-    assert (
-        IntrahostComponent.params["susceptibility_params"]["Antibody_CSP_Decay_Days"]
-        == params["susceptibility_params"]["Antibody_CSP_Decay_Days"]
-    )
+    # Test that modifying merozoites_per_schizont works
+    config3 = create_config({
+        'Run_Number': run_number,
+        'infection_params': {'Merozoites_Per_Schizont': 10}
+    })
+    assert config3.random_seed == run_number
+    assert config3.merozoites_per_schizont == 10
 
 
 def test_bindings():
-    print("Set default parameters...")
-    IntrahostComponent.set_params()
+    print("Create config...")
+    config = create_config()
 
     print("Create...")
-    ic = IntrahostComponent.create()
+    ic = IntrahostComponent.create(config)
 
     print("Challenge...")
     ic.challenge()
@@ -90,11 +88,11 @@ def test_bindings():
 
 
 def test_infection_clearance():
-    print("Set default parameters...")
-    IntrahostComponent.set_params()
+    print("Create config...")
+    config = create_config()
 
     print("Create...")
-    ic = IntrahostComponent.create()
+    ic = IntrahostComponent.create(config)
 
     print("Update...")
     n_infections_cache = 0
@@ -119,11 +117,11 @@ def test_max_infections():
     print("Load default model parameters...\n")
     params = params_from_default_file()
 
-    print("Set default parameters...")
-    IntrahostComponent.set_params()
+    print("Create config...")
+    config = create_config()
 
     print("Create...")
-    ic = IntrahostComponent.create()
+    ic = IntrahostComponent.create(config)
 
     print("Challenge...")
     for i in range(10):

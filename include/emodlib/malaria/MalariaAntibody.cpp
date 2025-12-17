@@ -1,7 +1,7 @@
 #include "MalariaAntibody.h"
 
 #include "emodlib/utils/Sigmoid.h"
-#include "SusceptibilityMalaria.h"
+#include "MalariaConfig.h"
 
 
 #define NON_TRIVIAL_ANTIBODY_THRESHOLD  (0.0000001)
@@ -18,8 +18,9 @@ namespace emodlib
     namespace malaria
     {
 
-        MalariaAntibody::MalariaAntibody()
-            : m_antigen_count(0)
+        MalariaAntibody::MalariaAntibody(MalariaConfig* config)
+            : m_config(config)
+            , m_antigen_count(0)
             , m_antigen_present(false)
         {
         }
@@ -41,9 +42,9 @@ namespace emodlib
             }
 
             // antibody capacity decays to a medium value (.3) dropping below .4 in ~120 days from 1.0
-            if ( m_antibody_capacity > Susceptibility::params::memory_level )
+            if ( m_antibody_capacity > m_config->memory_level )
             {
-                m_antibody_capacity -= ( m_antibody_capacity - Susceptibility::params::memory_level) * Susceptibility::params::hyperimmune_decay_rate * dt;
+                m_antibody_capacity -= ( m_antibody_capacity - m_config->memory_level) * m_config->hyperimmune_decay_rate * dt;
             }
         }
 
@@ -52,7 +53,7 @@ namespace emodlib
             // allow the decay of anti-CSP concentrations greater than unity (e.g. after boosting by vaccine)
             if ( m_antibody_concentration > m_antibody_capacity )
             {
-                m_antibody_concentration -= m_antibody_concentration * dt / Susceptibility::params::antibody_csp_decay_days;
+                m_antibody_concentration -= m_antibody_concentration * dt / m_config->antibody_csp_decay_days;
             }
             else
             {
@@ -70,8 +71,8 @@ namespace emodlib
         // Let's use the MSP version of antibody growth in the base class ...
         void MalariaAntibody::UpdateAntibodyCapacity( float dt, float inv_uL_blood )
         {
-            float growth_rate = Susceptibility::params::MSP1_antibody_growthrate;
-            float threshold   = Susceptibility::params::antibody_stimulation_c50;
+            float growth_rate = m_config->MSP1_antibody_growthrate;
+            float threshold   = m_config->antibody_stimulation_c50;
 
             m_antibody_capacity += growth_rate  * (1.0f - m_antibody_capacity) * float(Sigmoid::basic_sigmoid( threshold, float(m_antigen_count) * inv_uL_blood));
 
@@ -102,9 +103,9 @@ namespace emodlib
         // The minor PfEMP1 version is similar but not exactly the same...
         void MalariaAntibodyPfEMP1Minor::UpdateAntibodyCapacity( float dt, float inv_uL_blood )
         {
-            float min_stimulation = Susceptibility::params::antibody_stimulation_c50 * Susceptibility::params::minimum_adapted_response;
-            float growth_rate     = Susceptibility::params::antibody_capacity_growthrate * Susceptibility::params::non_specific_growth;
-            float threshold       = Susceptibility::params::antibody_stimulation_c50;
+            float min_stimulation = m_config->antibody_stimulation_c50 * m_config->minimum_adapted_response;
+            float growth_rate     = m_config->antibody_capacity_growthrate * m_config->non_specific_growth;
+            float threshold       = m_config->antibody_stimulation_c50;
 
             if (m_antibody_capacity <= B_CELL_PROLIFERATION_THRESHOLD)
             {
@@ -125,9 +126,9 @@ namespace emodlib
         // The major PfEMP1 version is slightly different again...
         void MalariaAntibodyPfEMP1Major::UpdateAntibodyCapacity( float dt, float inv_uL_blood )
         {
-            float min_stimulation = Susceptibility::params::antibody_stimulation_c50 * Susceptibility::params::minimum_adapted_response;
-            float growth_rate     = Susceptibility::params::antibody_capacity_growthrate;
-            float threshold       = Susceptibility::params::antibody_stimulation_c50;
+            float min_stimulation = m_config->antibody_stimulation_c50 * m_config->minimum_adapted_response;
+            float growth_rate     = m_config->antibody_capacity_growthrate;
+            float threshold       = m_config->antibody_stimulation_c50;
 
             if (m_antibody_capacity <= B_CELL_PROLIFERATION_THRESHOLD)
             {
@@ -169,7 +170,7 @@ namespace emodlib
             // allow the decay of anti-CSP concentrations greater than unity (e.g. after boosting by vaccine)
             if ( m_antibody_concentration > m_antibody_capacity )
             {
-                m_antibody_concentration -= m_antibody_concentration * dt / Susceptibility::params::antibody_csp_decay_days;
+                m_antibody_concentration -= m_antibody_concentration * dt / m_config->antibody_csp_decay_days;
             }
             else
             {
@@ -240,33 +241,33 @@ namespace emodlib
 
         //------------------------------------------------------------------
 
-        IMalariaAntibody* MalariaAntibodyCSP::CreateAntibody( int variant, float capacity )
+        IMalariaAntibody* MalariaAntibodyCSP::CreateAntibody( MalariaConfig* config, int variant, float capacity )
         {
-            MalariaAntibodyCSP * antibody = new MalariaAntibodyCSP();
+            MalariaAntibodyCSP * antibody = new MalariaAntibodyCSP(config);
             antibody->Initialize( MalariaAntibodyType::CSP, variant, capacity );
 
             return antibody;
         }
 
-        IMalariaAntibody* MalariaAntibodyMSP::CreateAntibody( int variant, float capacity )
+        IMalariaAntibody* MalariaAntibodyMSP::CreateAntibody( MalariaConfig* config, int variant, float capacity )
         {
-            MalariaAntibodyMSP * antibody = new MalariaAntibodyMSP();
+            MalariaAntibodyMSP * antibody = new MalariaAntibodyMSP(config);
             antibody->Initialize( MalariaAntibodyType::MSP1, variant, capacity );
 
             return antibody;
         }
 
-        IMalariaAntibody* MalariaAntibodyPfEMP1Minor::CreateAntibody( int variant, float capacity )
+        IMalariaAntibody* MalariaAntibodyPfEMP1Minor::CreateAntibody( MalariaConfig* config, int variant, float capacity )
         {
-            MalariaAntibodyPfEMP1Minor * antibody = new MalariaAntibodyPfEMP1Minor();
+            MalariaAntibodyPfEMP1Minor * antibody = new MalariaAntibodyPfEMP1Minor(config);
             antibody->Initialize( MalariaAntibodyType::PfEMP1_minor, variant, capacity );
 
             return antibody;
         }
 
-        IMalariaAntibody* MalariaAntibodyPfEMP1Major::CreateAntibody( int variant, float capacity )
+        IMalariaAntibody* MalariaAntibodyPfEMP1Major::CreateAntibody( MalariaConfig* config, int variant, float capacity )
         {
-            MalariaAntibodyPfEMP1Major * antibody = new MalariaAntibodyPfEMP1Major();
+            MalariaAntibodyPfEMP1Major * antibody = new MalariaAntibodyPfEMP1Major(config);
             antibody->Initialize( MalariaAntibodyType::PfEMP1_major, variant, capacity );
 
             return antibody;

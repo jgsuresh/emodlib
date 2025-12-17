@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "emodlib/ParamSet.h"
+#include <vector>
 
 #include "MalariaEnums.h"
 #include "IMalariaAntibody.h"
@@ -18,43 +18,14 @@ namespace emodlib
     namespace malaria
     {
 
+        struct MalariaConfig;  // forward declaration
+
         class Susceptibility
         {
 
         public:
 
-            struct params
-            {
-                // Used in MalariaAntibody for boost-decay functions
-                static float memory_level;
-                static float hyperimmune_decay_rate;
-                static float MSP1_antibody_growthrate;
-                static float antibody_stimulation_c50;
-                static float antibody_capacity_growthrate;
-                static float minimum_adapted_response;
-                static float non_specific_growth;
-                static float antibody_csp_decay_days;
-
-                // Used in Susceptibility for:
-                // ...maternal protection
-                // static bool enable_maternal_antibodies_transmission;
-                // static MaternalAntibodiesType::Enum maternal_antibodies_type; // TODO: emodlib#9 (innate init)
-                // static float maternal_antibody_protection;
-                static float maternal_antibody_decay_rate;
-
-                // ...innate immunity effects
-                // static InnateImmuneVariationType::Enum innate_immune_variation_type; // TODO: emodlib#9 (innate init)
-                static float pyrogenic_threshold;
-                static float fever_IRBC_killrate;
-
-                // ... red blood cell effects
-                static float erythropoiesis_anemia_effect;
-
-                static void Configure(const ParamSet& pset);
-            };
-
-
-            static Susceptibility *Create();
+            static Susceptibility *Create(MalariaConfig* config);
             IMalariaAntibody* RegisterAntibody(MalariaAntibodyType::Enum type, int variant, float capacity=0.0f);
             void UpdateActiveAntibody( pfemp1_antibody_t &pfemp1_variant, int minor_variant, int major_variant );
             void remove_RBCs(int64_t infectedAsexual, int64_t infectedGametocytes, double RBC_destruction_multiplier);
@@ -84,7 +55,11 @@ namespace emodlib
             float get_fever_kill_rate() const;
             void set_fever_kill_rate(float _rate);
 
+            MalariaConfig* GetConfig() const;
+
         private:
+
+            MalariaConfig* m_config;  // non-owning pointer to configuration
 
             float age;  // TODO: emodlib#10 (demographic components)
 
@@ -110,7 +85,7 @@ namespace emodlib
             float m_parasite_density;
 
 
-            Susceptibility();
+            Susceptibility(MalariaConfig* config);
             void Initialize();  // TODO: emodlib#9 (innate init) + emodlib#10 (demographic/transmission components)
 
             void recalculateBloodCapacity( float _age );

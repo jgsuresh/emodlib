@@ -8,6 +8,8 @@ namespace emodlib
     namespace malaria
     {
 
+        struct MalariaConfig;  // forward declaration
+
         class MalariaAntibody : public IMalariaAntibody
         {
         public:
@@ -38,6 +40,8 @@ namespace emodlib
             virtual int GetAntibodyVariant() const override;
 
         protected:
+            MalariaConfig* m_config;  // non-owning pointer to configuration
+
             float   m_antibody_capacity;
             float   m_antibody_concentration;
             int64_t m_antigen_count;
@@ -46,7 +50,7 @@ namespace emodlib
             MalariaAntibodyType::Enum m_antibody_type;
             int m_antibody_variant;
 
-            MalariaAntibody();
+            MalariaAntibody(MalariaConfig* config);
             void Initialize( MalariaAntibodyType::Enum type, int variant, float capacity = 0, float concentration = 0 );
         };
 
@@ -55,7 +59,8 @@ namespace emodlib
         class MalariaAntibodyCSP : public MalariaAntibody
         {
         public:
-            static IMalariaAntibody* CreateAntibody( int variant, float capacity=0.0f );
+            MalariaAntibodyCSP(MalariaConfig* config) : MalariaAntibody(config) {}
+            static IMalariaAntibody* CreateAntibody( MalariaConfig* config, int variant, float capacity=0.0f );
             virtual void UpdateAntibodyConcentration( float dt ) override;
             virtual void Decay( float dt ) override;
         };
@@ -63,20 +68,23 @@ namespace emodlib
         class MalariaAntibodyMSP : public MalariaAntibody
         {
         public:
-            static IMalariaAntibody* CreateAntibody( int variant, float capacity=0.0f );
+            MalariaAntibodyMSP(MalariaConfig* config) : MalariaAntibody(config) {}
+            static IMalariaAntibody* CreateAntibody( MalariaConfig* config, int variant, float capacity=0.0f );
         };
 
         class MalariaAntibodyPfEMP1Minor : public MalariaAntibody
         {
         public:
-            static IMalariaAntibody* CreateAntibody( int variant, float capacity=0.0f );
+            MalariaAntibodyPfEMP1Minor(MalariaConfig* config) : MalariaAntibody(config) {}
+            static IMalariaAntibody* CreateAntibody( MalariaConfig* config, int variant, float capacity=0.0f );
             virtual void UpdateAntibodyCapacity( float dt, float inv_uL_blood ) override;
         };
 
         class MalariaAntibodyPfEMP1Major : public MalariaAntibody
         {
         public:
-            static IMalariaAntibody* CreateAntibody( int variant, float capacity=0.0f );
+            MalariaAntibodyPfEMP1Major(MalariaConfig* config) : MalariaAntibody(config) {}
+            static IMalariaAntibody* CreateAntibody( MalariaConfig* config, int variant, float capacity=0.0f );
             virtual void UpdateAntibodyCapacity( float dt, float inv_uL_blood ) override;
         };
     }
