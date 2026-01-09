@@ -16,7 +16,7 @@ namespace emodlib
     {
 
         MalariaConfig::MalariaConfig()
-            : rng(nullptr)
+            : rng(std::make_shared<PSEUDO_DES>(0, 256))  // Initialize with default seed
             , suidGenerator(0, 0)
         {
         }

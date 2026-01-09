@@ -85,12 +85,14 @@ namespace emodlib
             Susceptibility* immunity;
             MalariaConfig* m_config;  // non-owning pointer to configuration
 
+            // EMOD 2.22: Time tracking for antibody decay
+            float m_current_time;
 
             Infection(MalariaConfig* config);
             void Initialize(Susceptibility* _susceptibility, int initial_hepatocytes);
 
             void malariaProcessHepatocytes(float dt);
-            void processEndOfAsexualCycle();
+            void processEndOfAsexualCycle(float dt);
             void malariaIRBCAntigenSwitch(double merozoitesurvival = 1.0);
             void malariaCycleGametocytes(double merozoitesurvival = 1.0);
             void malariaImmuneStimulation(float dt);

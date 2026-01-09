@@ -1,5 +1,8 @@
 #include "MalariaAntibody.h"
 
+#include <cmath>
+#include <cfloat>
+
 #include "emodlib/utils/Sigmoid.h"
 #include "MalariaConfig.h"
 
@@ -20,8 +23,13 @@ namespace emodlib
 
         MalariaAntibody::MalariaAntibody(MalariaConfig* config)
             : m_config(config)
+            , m_antibody_capacity(0.0f)
+            , m_antibody_concentration(0.0f)
             , m_antigen_count(0)
-            , m_antigen_present(false)
+            , m_antibody_type(MalariaAntibodyType::CSP)
+            , m_antibody_variant(0)
+            , m_active_index(-1)
+            , m_time_last_active(-1.0f)
         {
         }
 
@@ -33,32 +41,49 @@ namespace emodlib
             m_antibody_concentration = concentration;
         }
 
-        void MalariaAntibody::Decay( float dt )
+        // EMOD 2.22: Decay now takes total inactive time, not per-timestep dt
+        // Called from IncreaseAntigenCount when antibody becomes active
+        void MalariaAntibody::Decay( float decay_time )
         {
-            // don't do multiplication and subtraction unless antibody levels non-trivial
-            if ( m_antibody_concentration > NON_TRIVIAL_ANTIBODY_THRESHOLD )
-            {
-                m_antibody_concentration -= m_antibody_concentration * TWENTY_DAY_DECAY_CONSTANT * dt;  //twenty day decay constant
-            }
+            // decay_time - time (in days) the antibody has spent being inactive
+            // this is only called when antibodies are activated
 
-            // antibody capacity decays to a medium value (.3) dropping below .4 in ~120 days from 1.0
-            if ( m_antibody_capacity > m_config->memory_level )
-            {
-                m_antibody_capacity -= ( m_antibody_capacity - m_config->memory_level) * m_config->hyperimmune_decay_rate * dt;
-            }
-        }
-
-        void MalariaAntibodyCSP::Decay( float dt )
-        {
             // allow the decay of anti-CSP concentrations greater than unity (e.g. after boosting by vaccine)
-            if ( m_antibody_concentration > m_antibody_capacity )
+            if( (m_antibody_type == MalariaAntibodyType::CSP) && (m_antibody_concentration > m_antibody_capacity) )
             {
-                m_antibody_concentration -= m_antibody_concentration * dt / m_config->antibody_csp_decay_days;
+                m_antibody_concentration -= m_antibody_concentration * decay_time / m_config->antibody_csp_decay_days;
             }
             else
             {
                 // otherwise do the normal behavior of decaying antibody concentration based on capacity
-                MalariaAntibody::Decay( dt );
+
+                // don't do multiplication and subtraction unless antibody levels non-trivial
+                if(m_antibody_concentration > NON_TRIVIAL_ANTIBODY_THRESHOLD)
+                {
+                    // EMOD 2.22: exponential decay instead of linear
+                    m_antibody_concentration = m_antibody_concentration * std::exp( -decay_time * TWENTY_DAY_DECAY_CONSTANT );
+                }
+
+                if(m_antibody_capacity > m_config->memory_level)
+                {
+                    // antibody capacity decays to a medium value (.3) dropping below .4 in ~120 days from 1.0
+                    // EMOD 2.22: exponential decay formula
+                    m_antibody_capacity = ( m_antibody_capacity - m_config->memory_level )
+                        * std::exp( -decay_time * m_config->hyperimmune_decay_rate )
+                        + m_config->memory_level;
+                } // stays around memory level until antibody_days_to_long_term_decay kicks in
+
+                // --------------------------------------------------------------------------------
+                // --- EMOD 2.22: Long-term decay
+                // --- If the antibody has been dormant for a long time, start a gradual decay.
+                // --- This is to help reduce the issue where older people have too much immunity.
+                // --------------------------------------------------------------------------------
+                if(( decay_time >= m_config->antibody_days_to_long_term_decay ) &&
+                    ( m_antibody_capacity > FLT_EPSILON ))
+                {
+                    float delta_time = decay_time - m_config->antibody_days_to_long_term_decay;
+                    m_antibody_capacity = m_antibody_capacity * std::exp( -delta_time / m_config->antibody_long_term_decay_days );
+                }
             }
         }
 
@@ -181,22 +206,34 @@ namespace emodlib
 
         void MalariaAntibody::ResetCounters()
         {
-            m_antigen_present = false;
-            m_antigen_count   = 0;
+            m_antigen_count = 0;
+            m_active_index = -1;
         }
 
-        void MalariaAntibody::IncreaseAntigenCount( int64_t antigenCount )
+        // EMOD 2.22: IncreaseAntigenCount now handles time-based decay
+        void MalariaAntibody::IncreaseAntigenCount( int64_t antigenCount, float currentTime, float dt )
         {
-            if( antigenCount > 0 )
+            m_antigen_count += antigenCount;
+
+            // --------------------------------------------------------------------------------------------
+            // --- currentTime here is not sim currentTime but currentTime + X*infectious_timestep(i.e. dt)
+            // --- so if this was updated the previous infectious_timestep then it was just active
+            // --- and should not decay.   The difference between the currentTime and the last time active
+            // --- needs to be greater than the infectious_timestep so we know that it spent sometime
+            // --- unactive and needs to be decayed.
+            // --- We subtract the dt because we don't decay for the current time step.
+            // --------------------------------------------------------------------------------------------
+            float decay_time = currentTime - m_time_last_active - dt;
+            if( (m_time_last_active >= 0.0f) && (decay_time > 0.0f) )
             {
-                m_antigen_count += antigenCount;
-                m_antigen_present = true;
+                Decay( decay_time );
             }
+            m_time_last_active = currentTime;
         }
 
         void MalariaAntibody::SetAntigenicPresence( bool antigenPresent )
         {
-            m_antigen_present = antigenPresent;
+            m_antigen_count = (antigenPresent ? 1 : 0);
         }
 
         int64_t MalariaAntibody::GetAntigenCount() const
@@ -206,7 +243,7 @@ namespace emodlib
 
         bool MalariaAntibody::GetAntigenicPresence() const
         {
-            return m_antigen_present;
+            return (m_antigen_count > 0);
         }
 
         float MalariaAntibody::GetAntibodyCapacity() const
@@ -237,6 +274,27 @@ namespace emodlib
         int MalariaAntibody::GetAntibodyVariant() const
         {
             return m_antibody_variant;
+        }
+
+        // EMOD 2.22: Time tracking methods
+        void MalariaAntibody::SetTimeLastActive( float time )
+        {
+            m_time_last_active = time;
+        }
+
+        float MalariaAntibody::GetTimeLastActive() const
+        {
+            return m_time_last_active;
+        }
+
+        void MalariaAntibody::SetActiveIndex( int32_t index )
+        {
+            m_active_index = index;
+        }
+
+        int32_t MalariaAntibody::GetActiveIndex() const
+        {
+            return m_active_index;
         }
 
         //------------------------------------------------------------------

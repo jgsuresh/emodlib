@@ -18,14 +18,15 @@ namespace emodlib
 
         public:
             // IMalariaAntibody methods
-            virtual void  Decay( float dt ) override;
+            virtual void  Decay( float decay_time ) override;  // decay_time = total inactive time
             virtual float StimulateCytokines( float dt, float inv_uL_blood ) override;
             virtual void  UpdateAntibodyCapacity( float dt, float inv_uL_blood ) override;
             virtual void  UpdateAntibodyCapacityByRate( float dt, float growth_rate ) override;
             virtual void  UpdateAntibodyConcentration( float dt ) override;
             virtual void  ResetCounters() override;
 
-            virtual void  IncreaseAntigenCount( int64_t antigenCount ) override;
+            // EMOD 2.22: IncreaseAntigenCount now takes currentTime and dt for time-based decay
+            virtual void  IncreaseAntigenCount( int64_t antigenCount, float currentTime, float dt ) override;
             virtual void  SetAntigenicPresence( bool antigenPresent ) override;
 
             virtual int64_t GetAntigenCount() const override;
@@ -39,16 +40,25 @@ namespace emodlib
             virtual MalariaAntibodyType::Enum GetAntibodyType() const override;
             virtual int GetAntibodyVariant() const override;
 
+            // EMOD 2.22: Time tracking for deferred decay
+            virtual void    SetTimeLastActive( float time ) override;
+            virtual float   GetTimeLastActive() const override;
+            virtual void    SetActiveIndex( int32_t index ) override;
+            virtual int32_t GetActiveIndex() const override;
+
         protected:
             MalariaConfig* m_config;  // non-owning pointer to configuration
 
             float   m_antibody_capacity;
             float   m_antibody_concentration;
             int64_t m_antigen_count;
-            bool    m_antigen_present;
 
             MalariaAntibodyType::Enum m_antibody_type;
             int m_antibody_variant;
+
+            // EMOD 2.22: Time tracking for deferred decay
+            int32_t m_active_index;
+            float   m_time_last_active;
 
             MalariaAntibody(MalariaConfig* config);
             void Initialize( MalariaAntibodyType::Enum type, int variant, float capacity = 0, float concentration = 0 );
@@ -62,7 +72,7 @@ namespace emodlib
             MalariaAntibodyCSP(MalariaConfig* config) : MalariaAntibody(config) {}
             static IMalariaAntibody* CreateAntibody( MalariaConfig* config, int variant, float capacity=0.0f );
             virtual void UpdateAntibodyConcentration( float dt ) override;
-            virtual void Decay( float dt ) override;
+            // Note: Decay() now handles CSP-specific logic in base class via type check
         };
 
         class MalariaAntibodyMSP : public MalariaAntibody

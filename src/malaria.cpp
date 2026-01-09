@@ -21,8 +21,9 @@ template <class IAntibodyBase = emm::IMalariaAntibody>
 class PyIMalariaAntibody : public IAntibodyBase {
 public:
      using IAntibodyBase::IAntibodyBase; // Inherit constructors
-     void IncreaseAntigenCount(int64_t antigenCount) override {
-          PYBIND11_OVERRIDE_PURE(void, IAntibodyBase, IncreaseAntigenCount, antigenCount); }
+     // EMOD 2.22: Updated signature with currentTime and dt
+     void IncreaseAntigenCount(int64_t antigenCount, float currentTime, float dt) override {
+          PYBIND11_OVERRIDE_PURE(void, IAntibodyBase, IncreaseAntigenCount, antigenCount, currentTime, dt); }
      int64_t GetAntigenCount() const override {
           PYBIND11_OVERRIDE_PURE(int64_t, IAntibodyBase, GetAntigenCount, ); }
      float GetAntibodyCapacity() const override {
@@ -35,8 +36,9 @@ template <class MalariaAntibodyBase = emm::MalariaAntibody>
 class PyMalariaAntibody : public PyIMalariaAntibody<MalariaAntibodyBase> {
 public:
      using PyIMalariaAntibody<MalariaAntibodyBase>::PyIMalariaAntibody; // Inherit constructors
-     void IncreaseAntigenCount(int64_t antigenCount) override {
-          PYBIND11_OVERRIDE(void, MalariaAntibodyBase, IncreaseAntigenCount, antigenCount); }
+     // EMOD 2.22: Updated signature with currentTime and dt
+     void IncreaseAntigenCount(int64_t antigenCount, float currentTime, float dt) override {
+          PYBIND11_OVERRIDE(void, MalariaAntibodyBase, IncreaseAntigenCount, antigenCount, currentTime, dt); }
      int64_t GetAntigenCount() const override {
           PYBIND11_OVERRIDE(int64_t, MalariaAntibodyBase, GetAntigenCount, ); }
      float GetAntibodyCapacity() const override {
@@ -83,7 +85,11 @@ void add_malaria_bindings(py::module& m) {
         .def_readwrite("minimum_adapted_response", &MalariaConfig::minimum_adapted_response)
         .def_readwrite("non_specific_growth", &MalariaConfig::non_specific_growth)
         .def_readwrite("antibody_csp_decay_days", &MalariaConfig::antibody_csp_decay_days)
+        .def_readwrite("antibody_days_to_long_term_decay", &MalariaConfig::antibody_days_to_long_term_decay)
+        .def_readwrite("antibody_long_term_decay_days", &MalariaConfig::antibody_long_term_decay_days)
         .def_readwrite("maternal_antibody_decay_rate", &MalariaConfig::maternal_antibody_decay_rate)
+        .def_readwrite("PfHRP2_boost_rate", &MalariaConfig::PfHRP2_boost_rate)
+        .def_readwrite("PfHRP2_decay_rate", &MalariaConfig::PfHRP2_decay_rate)
         .def_readwrite("pyrogenic_threshold", &MalariaConfig::pyrogenic_threshold)
         .def_readwrite("fever_IRBC_killrate", &MalariaConfig::fever_IRBC_killrate)
         .def_readwrite("erythropoiesis_anemia_effect", &MalariaConfig::erythropoiesis_anemia_effect)
@@ -229,12 +235,17 @@ void add_malaria_bindings(py::module& m) {
      py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody")
           .def_property_readonly("antigen_count", &IMalariaAntibody::GetAntigenCount)
           .def_property_readonly("antibody_capacity", &IMalariaAntibody::GetAntibodyCapacity)
-          .def_property_readonly("antibody_concentration", &IMalariaAntibody::GetAntibodyConcentration);
+          .def_property_readonly("antibody_concentration", &IMalariaAntibody::GetAntibodyConcentration)
+          // EMOD 2.22: Time tracking for deferred decay
+          .def_property_readonly("time_last_active", &IMalariaAntibody::GetTimeLastActive)
+          .def_property_readonly("active_index", &IMalariaAntibody::GetActiveIndex);
 
      py::class_<MalariaAntibody, IMalariaAntibody, PyMalariaAntibody<>> (m, "MalariaAntibody")
           .def_property_readonly("antigen_count", &MalariaAntibody::GetAntigenCount)
           .def_property_readonly("antibody_capacity", &MalariaAntibody::GetAntibodyCapacity)
-          .def_property_readonly("antibody_concentration", &MalariaAntibody::GetAntibodyConcentration);
+          .def_property_readonly("antibody_concentration", &MalariaAntibody::GetAntibodyConcentration)
+          .def_property_readonly("time_last_active", &MalariaAntibody::GetTimeLastActive)
+          .def_property_readonly("active_index", &MalariaAntibody::GetActiveIndex);
 
 
      py::class_<MalariaAntibodyMSP, MalariaAntibody, PyMalariaAntibody<MalariaAntibodyMSP>> (m, "MalariaAntibodyMSP");

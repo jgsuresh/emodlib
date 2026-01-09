@@ -56,8 +56,13 @@ namespace emodlib
             float minimum_adapted_response = 0.02f;
             float non_specific_growth = 0.5f;
             float antibody_csp_decay_days = DEFAULT_ANTIBODY_CSP_DECAY_DAYS;
+            float antibody_days_to_long_term_decay = 730.0f;   // 2 years before long-term decay starts
+            float antibody_long_term_decay_days = 7300.0f;     // 20 year decay time constant
 
             float maternal_antibody_decay_rate = 0.01f;
+
+            float PfHRP2_boost_rate = 7.0e-14f;    // Picograms/iRBC/day
+            float PfHRP2_decay_rate = 0.172f;      // Fraction per day (3.67 day half-life)
 
             float pyrogenic_threshold = 1000.0f;
             float fever_IRBC_killrate = DEFAULT_FEVER_IRBC_KILL_RATE;

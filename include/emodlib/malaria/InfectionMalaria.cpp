@@ -48,6 +48,7 @@ namespace emodlib
 
             , immunity(nullptr)
             , m_config(config)
+            , m_current_time(0.0f)
         {
 
         }
@@ -101,6 +102,7 @@ namespace emodlib
 
         void Infection::Update(float dt)
         {
+            m_current_time += dt;  // EMOD 2.22: track time for antibody decay
             m_liver_stage_timer += dt;  // increment latent period
 
             if (m_hepatocytes > 0)
@@ -123,7 +125,7 @@ namespace emodlib
                 // process end of asexual cycle events if appropriate
                 if (m_IRBCtimer <= 0)
                 {
-                    processEndOfAsexualCycle();
+                    processEndOfAsexualCycle(dt);
                 }
 
                 // check for death due to death of all RBCs
@@ -145,7 +147,7 @@ namespace emodlib
                 malariaImmunityGametocyteKill(dt);
 
                 //make sure MSP type generates antibodies during an ongoing infection, not just during the short time of IRBC rupturing, since the stimulation may persist
-                m_MSP_antibody->IncreaseAntigenCount(1);
+                m_MSP_antibody->IncreaseAntigenCount(1, m_current_time, dt);
                 immunity->SetAntigenPresent(); // NOTE: this has an interesting behavior in that it continues to update MSP capacity AFTER there are no IRBC (only gametocytes)
             }
 
@@ -189,7 +191,7 @@ namespace emodlib
             }
         }
 
-        void Infection::processEndOfAsexualCycle()
+        void Infection::processEndOfAsexualCycle(float dt)
         {
             // Merozoite-specific antibodies can limit merozoite success--Blackman, M. J., H. G. Heidrich, et al. (1990).
             // "A single fragment of a malaria merozoite surface protein remains on the parasite during red cell invasion
@@ -202,7 +204,7 @@ namespace emodlib
             // How many rupture for this infection handed to suscept object for total stimulation calculations
             int64_t totalIRBC = 0;
             totalIRBC = std::accumulate( m_IRBC_count.begin(), m_IRBC_count.end(), totalIRBC );
-            m_MSP_antibody->IncreaseAntigenCount( totalIRBC );
+            m_MSP_antibody->IncreaseAntigenCount( totalIRBC, m_current_time, dt );
 
             // Move immature gametocytes forward a stage and create initial stage gametocytes from previous merozoites
             // This is the last function to use m_IRBC_count from the previous cycle
@@ -364,10 +366,10 @@ namespace emodlib
                 if (m_IRBC_count[i] > 0)
                 {
                     // PfEMP-1 major epitopes
-                    m_PfEMP1_antibodies[i].major->IncreaseAntigenCount(m_IRBC_count[i]);
+                    m_PfEMP1_antibodies[i].major->IncreaseAntigenCount(m_IRBC_count[i], m_current_time, dt);
 
                     // PfEMP-1 minor epitopes
-                    m_PfEMP1_antibodies[i].minor->IncreaseAntigenCount(m_IRBC_count[i]);
+                    m_PfEMP1_antibodies[i].minor->IncreaseAntigenCount(m_IRBC_count[i], m_current_time, dt);
 
                     // Notify susceptibility that there is antigen present
                     immunity->SetAntigenPresent();
