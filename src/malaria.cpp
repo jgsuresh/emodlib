@@ -132,7 +132,14 @@ void add_malaria_bindings(py::module& m) {
         .def_property_readonly("infectiousness", &IntrahostComponent::GetInfectiousness)
 
         .def_property_readonly("susceptibility", &IntrahostComponent::GetSusceptibility)
-        .def_property_readonly("infections", &IntrahostComponent::GetInfections);
+        .def_property_readonly("infections", &IntrahostComponent::GetInfections)
+
+        // Aggregate infection state (for validation without raw pointer access)
+        .def_property_readonly("total_irbc_counts", &IntrahostComponent::get_total_irbc_counts)
+        .def_property_readonly("total_hepatocytes", &IntrahostComponent::get_total_hepatocytes)
+        .def_property_readonly("total_male_gametocytes", &IntrahostComponent::get_total_male_gametocytes)
+        .def_property_readonly("total_female_gametocytes", &IntrahostComponent::get_total_female_gametocytes)
+        .def_property_readonly("total_asexual_cycles", &IntrahostComponent::get_total_asexual_cycles);
 
 
     // TODO: emodlib#9 (readwrite for init) + emodlib#11 (readonly for testing)
@@ -164,7 +171,25 @@ void add_malaria_bindings(py::module& m) {
 
           .def_property("fever_kill_rate",
                         &Susceptibility::get_fever_kill_rate,
-                        &Susceptibility::set_fever_kill_rate);
+                        &Susceptibility::set_fever_kill_rate)
+
+          // Existing readonly properties
+          .def_property_readonly("rbc_count", &Susceptibility::get_RBC_count)
+          .def_property_readonly("inv_microliters_blood", &Susceptibility::get_inv_microliters_blood)
+          .def_property_readonly("rbc_availability", &Susceptibility::get_RBC_availability)
+          .def_property_readonly("fever", &Susceptibility::get_fever)
+          .def_property_readonly("fever_celsius", &Susceptibility::get_fever_celsius)
+          .def_property_readonly("cytokines", &Susceptibility::get_cytokines)
+          .def_property_readonly("fever_killing_rate", &Susceptibility::get_fever_killing_rate)
+          .def_property_readonly("parasite_density", &Susceptibility::get_parasite_density)
+          .def_property_readonly("maternal_antibodies", &Susceptibility::get_maternal_antibodies)
+
+          // Additional getters for detailed state exposure (for validation)
+          .def_property_readonly("rbc_capacity", &Susceptibility::get_rbc_capacity)
+          .def_property_readonly("csp_antibody", &Susceptibility::get_csp_antibody)
+          .def_property_readonly("active_msp_antibodies", &Susceptibility::get_active_msp_antibodies)
+          .def_property_readonly("active_pfemp1_minor_antibodies", &Susceptibility::get_active_pfemp1_minor_antibodies)
+          .def_property_readonly("active_pfemp1_major_antibodies", &Susceptibility::get_active_pfemp1_major_antibodies);
 
 
      py::class_<Infection> (m, "Infection")
@@ -179,13 +204,32 @@ void add_malaria_bindings(py::module& m) {
                "dt"_a)
 
           .def_property_readonly("msp_type", &Infection::get_msp_type)
-
           .def_property_readonly("pfemp1_major_types", &Infection::get_pfemp1_major_types)
+          .def_property_readonly("msp_antibody", &Infection::get_msp_antibody)
 
-          .def_property_readonly("msp_antibody", &Infection::get_msp_antibody);
+          // Existing getters
+          .def("get_male_gametocytes", &Infection::get_MaleGametocytes, "stage"_a)
+          .def("get_female_gametocytes", &Infection::get_FemaleGametocytes, "stage"_a)
+          .def_property_readonly("asexual_density", &Infection::get_asexual_density)
+          .def_property_readonly("mature_gametocyte_density", &Infection::get_mature_gametocyte_density)
+          .def_property_readonly("is_cleared", &Infection::IsCleared)
+
+          // Additional getters for detailed state exposure (for validation)
+          .def_property_readonly("irbc_counts", &Infection::get_irbc_counts)
+          .def_property_readonly("hepatocyte_count", &Infection::get_hepatocyte_count)
+          .def_property_readonly("liver_stage_timer", &Infection::get_liver_stage_timer)
+          .def_property_readonly("asexual_phase", &Infection::get_asexual_phase)
+          .def_property_readonly("asexual_cycle_timer", &Infection::get_asexual_cycle_timer)
+          .def_property_readonly("asexual_cycle_count", &Infection::get_asexual_cycle_count)
+          .def_property_readonly("all_male_gametocytes", &Infection::get_all_male_gametocytes)
+          .def_property_readonly("all_female_gametocytes", &Infection::get_all_female_gametocytes)
+          .def_property_readonly("minor_epitope_types", &Infection::get_minor_epitope_types);
 
 
-     py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody");
+     py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody")
+          .def_property_readonly("antigen_count", &IMalariaAntibody::GetAntigenCount)
+          .def_property_readonly("antibody_capacity", &IMalariaAntibody::GetAntibodyCapacity)
+          .def_property_readonly("antibody_concentration", &IMalariaAntibody::GetAntibodyConcentration);
 
      py::class_<MalariaAntibody, IMalariaAntibody, PyMalariaAntibody<>> (m, "MalariaAntibody")
           .def_property_readonly("antigen_count", &MalariaAntibody::GetAntigenCount)

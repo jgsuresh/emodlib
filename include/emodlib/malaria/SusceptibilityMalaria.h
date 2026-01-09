@@ -43,6 +43,13 @@ namespace emodlib
             float get_parasite_density() const;
             float get_maternal_antibodies() const;
 
+            // Additional getters for detailed state exposure (for validation)
+            int64_t get_rbc_capacity() const;
+            IMalariaAntibody* get_csp_antibody() const;
+            const std::vector<IMalariaAntibody*>& get_active_msp_antibodies() const;
+            const std::vector<IMalariaAntibody*>& get_active_pfemp1_minor_antibodies() const;
+            const std::vector<IMalariaAntibody*>& get_active_pfemp1_major_antibodies() const;
+
             float get_age() const;
             void set_age(float _age);
 

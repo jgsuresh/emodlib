@@ -118,6 +118,70 @@ namespace emodlib
             return m_config;
         }
 
+        // Aggregate infection state getters (for validation)
+
+        std::vector<int64_t> IntrahostComponent::get_total_irbc_counts() const
+        {
+            std::vector<int64_t> totals(CLONAL_PfEMP1_VARIANTS, 0);
+            for (auto* inf : infections)
+            {
+                auto counts = inf->get_irbc_counts();
+                for (size_t i = 0; i < counts.size(); i++)
+                {
+                    totals[i] += counts[i];
+                }
+            }
+            return totals;
+        }
+
+        int64_t IntrahostComponent::get_total_hepatocytes() const
+        {
+            int64_t total = 0;
+            for (auto* inf : infections)
+            {
+                total += inf->get_hepatocyte_count();
+            }
+            return total;
+        }
+
+        std::vector<int64_t> IntrahostComponent::get_total_male_gametocytes() const
+        {
+            std::vector<int64_t> totals(GametocyteStages::Count, 0);
+            for (auto* inf : infections)
+            {
+                auto counts = inf->get_all_male_gametocytes();
+                for (size_t i = 0; i < counts.size(); i++)
+                {
+                    totals[i] += counts[i];
+                }
+            }
+            return totals;
+        }
+
+        std::vector<int64_t> IntrahostComponent::get_total_female_gametocytes() const
+        {
+            std::vector<int64_t> totals(GametocyteStages::Count, 0);
+            for (auto* inf : infections)
+            {
+                auto counts = inf->get_all_female_gametocytes();
+                for (size_t i = 0; i < counts.size(); i++)
+                {
+                    totals[i] += counts[i];
+                }
+            }
+            return totals;
+        }
+
+        int32_t IntrahostComponent::get_total_asexual_cycles() const
+        {
+            int32_t total = 0;
+            for (auto* inf : infections)
+            {
+                total += inf->get_asexual_cycle_count();
+            }
+            return total;
+        }
+
     }
 
 }

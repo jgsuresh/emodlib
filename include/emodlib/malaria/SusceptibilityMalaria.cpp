@@ -450,6 +450,33 @@ namespace emodlib
         {
             return m_config;
         }
+
+        // Additional getters for detailed state exposure (for validation)
+
+        int64_t Susceptibility::get_rbc_capacity() const
+        {
+            return m_RBCcapacity;
+        }
+
+        IMalariaAntibody* Susceptibility::get_csp_antibody() const
+        {
+            return m_CSP_antibody;
+        }
+
+        const std::vector<IMalariaAntibody*>& Susceptibility::get_active_msp_antibodies() const
+        {
+            return m_active_MSP_antibodies;
+        }
+
+        const std::vector<IMalariaAntibody*>& Susceptibility::get_active_pfemp1_minor_antibodies() const
+        {
+            return m_active_PfEMP1_minor_antibodies;
+        }
+
+        const std::vector<IMalariaAntibody*>& Susceptibility::get_active_pfemp1_major_antibodies() const
+        {
+            return m_active_PfEMP1_major_antibodies;
+        }
     }
 
 }

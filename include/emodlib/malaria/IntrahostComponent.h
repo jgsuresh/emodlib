@@ -45,6 +45,13 @@ namespace emodlib
 
             std::shared_ptr<MalariaConfig> GetConfig() const;
 
+            // Aggregate infection state getters (for validation without raw pointer access)
+            std::vector<int64_t> get_total_irbc_counts() const;
+            int64_t get_total_hepatocytes() const;
+            std::vector<int64_t> get_total_male_gametocytes() const;
+            std::vector<int64_t> get_total_female_gametocytes() const;
+            int32_t get_total_asexual_cycles() const;
+
         private:
 
             std::shared_ptr<MalariaConfig> m_config;

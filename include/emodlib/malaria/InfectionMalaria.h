@@ -45,6 +45,17 @@ namespace emodlib
 
             IMalariaAntibody* get_msp_antibody() const;
 
+            // Additional getters for detailed state exposure (for validation)
+            std::vector<int64_t> get_irbc_counts() const;
+            int32_t get_hepatocyte_count() const;
+            float get_liver_stage_timer() const;
+            int32_t get_asexual_phase() const;
+            double get_asexual_cycle_timer() const;
+            int32_t get_asexual_cycle_count() const;
+            std::vector<int64_t> get_all_male_gametocytes() const;
+            std::vector<int64_t> get_all_female_gametocytes() const;
+            std::vector<int32_t> get_minor_epitope_types() const;
+
         private:
 
             suids::suid suid; // unique id of this infection within the system

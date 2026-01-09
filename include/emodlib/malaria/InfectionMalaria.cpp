@@ -539,6 +539,65 @@ namespace emodlib
         }
 
 
+        // Additional getters for detailed state exposure (for validation)
+
+        std::vector<int64_t> Infection::get_irbc_counts() const
+        {
+            return m_IRBC_count;
+        }
+
+        int32_t Infection::get_hepatocyte_count() const
+        {
+            return m_hepatocytes;
+        }
+
+        float Infection::get_liver_stage_timer() const
+        {
+            return m_liver_stage_timer;
+        }
+
+        int32_t Infection::get_asexual_phase() const
+        {
+            return static_cast<int32_t>(m_asexual_phase);
+        }
+
+        double Infection::get_asexual_cycle_timer() const
+        {
+            return m_IRBCtimer;
+        }
+
+        int32_t Infection::get_asexual_cycle_count() const
+        {
+            return m_asexual_cycle_count;
+        }
+
+        std::vector<int64_t> Infection::get_all_male_gametocytes() const
+        {
+            std::vector<int64_t> result(GametocyteStages::Count);
+            for (int i = 0; i < GametocyteStages::Count; i++)
+            {
+                result[i] = m_malegametocytes[i];
+            }
+            return result;
+        }
+
+        std::vector<int64_t> Infection::get_all_female_gametocytes() const
+        {
+            std::vector<int64_t> result(GametocyteStages::Count);
+            for (int i = 0; i < GametocyteStages::Count; i++)
+            {
+                result[i] = m_femalegametocytes[i];
+            }
+            return result;
+        }
+
+        std::vector<int32_t> Infection::get_minor_epitope_types() const
+        {
+            std::vector<int32_t> vi;
+            vi.assign(m_minor_epitope_type, m_minor_epitope_type + CLONAL_PfEMP1_VARIANTS);
+            return vi;
+        }
+
     }
 
 }
