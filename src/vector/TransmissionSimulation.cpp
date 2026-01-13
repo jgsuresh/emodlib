@@ -22,6 +22,15 @@ namespace emodlib
         {
         }
 
+        TransmissionSimulation::~TransmissionSimulation()
+        {
+            for (auto* human : m_humans)
+            {
+                delete human;
+            }
+            m_humans.clear();
+        }
+
         void TransmissionSimulation::Initialize(
             std::shared_ptr<malaria::MalariaConfig> malaria_config,
             const VectorConfig& vector_config,
@@ -33,8 +42,14 @@ namespace emodlib
             m_rng.seed(seed);
             m_current_day = 0;
 
-            // Create human intrahost models
+            // Clear any existing humans
+            for (auto* human : m_humans)
+            {
+                delete human;
+            }
             m_humans.clear();
+
+            // Create human intrahost models
             m_humans.reserve(n_humans);
             for (int i = 0; i < n_humans; ++i)
             {
@@ -52,9 +67,9 @@ namespace emodlib
         void TransmissionSimulation::Update(float dt, float temperature)
         {
             // 1. Update all human intrahost models
-            for (auto& human : m_humans)
+            for (auto* human : m_humans)
             {
-                human.Update(dt);
+                human->Update(dt);
             }
 
             // 2. Collect human infectiousness values
@@ -91,7 +106,7 @@ namespace emodlib
             int to_infect = std::min(n_infections, static_cast<int>(m_humans.size()));
             for (int i = 0; i < to_infect; ++i)
             {
-                m_humans[indices[i]].Challenge();
+                m_humans[indices[i]]->Challenge();
             }
         }
 
@@ -99,7 +114,7 @@ namespace emodlib
         {
             if (human_index >= 0 && human_index < static_cast<int>(m_humans.size()))
             {
-                m_humans[human_index].Challenge();
+                m_humans[human_index]->Challenge();
             }
         }
 
@@ -126,9 +141,9 @@ namespace emodlib
             }
 
             float total = 0.0f;
-            for (const auto& human : m_humans)
+            for (const auto* human : m_humans)
             {
-                total += human.GetParasiteDensity();
+                total += human->GetParasiteDensity();
             }
             return total / static_cast<float>(m_humans.size());
         }
@@ -141,9 +156,9 @@ namespace emodlib
             }
 
             float total = 0.0f;
-            for (const auto& human : m_humans)
+            for (const auto* human : m_humans)
             {
-                total += human.GetGametocyteDensity();
+                total += human->GetGametocyteDensity();
             }
             return total / static_cast<float>(m_humans.size());
         }
@@ -156,9 +171,9 @@ namespace emodlib
             }
 
             float total = 0.0f;
-            for (const auto& human : m_humans)
+            for (const auto* human : m_humans)
             {
-                total += human.GetInfectiousness();
+                total += human->GetInfectiousness();
             }
             return total / static_cast<float>(m_humans.size());
         }
@@ -166,9 +181,9 @@ namespace emodlib
         int TransmissionSimulation::GetInfectedCount() const
         {
             int count = 0;
-            for (const auto& human : m_humans)
+            for (const auto* human : m_humans)
             {
-                if (human.GetNumInfections() > 0)
+                if (human->GetNumInfections() > 0)
                 {
                     count++;
                 }
@@ -219,7 +234,7 @@ namespace emodlib
             std::vector<float> infectiousness(m_humans.size());
             for (size_t i = 0; i < m_humans.size(); ++i)
             {
-                infectiousness[i] = m_humans[i].GetInfectiousness();
+                infectiousness[i] = m_humans[i]->GetInfectiousness();
             }
             return infectiousness;
         }
@@ -236,7 +251,7 @@ namespace emodlib
                     // Poisson number of successful hepatocyte invasions
                     // For simplicity, challenge once if any sporozoites arrived
                     // (EMOD uses more complex sporozoite survival calculation)
-                    m_humans[i].Challenge();
+                    m_humans[i]->Challenge();
                 }
             }
         }

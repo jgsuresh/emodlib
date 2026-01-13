@@ -41,6 +41,7 @@ namespace emodlib
             // =====================================================
 
             TransmissionSimulation();
+            ~TransmissionSimulation();
 
             /**
              * @brief Initialize simulation with configurations.
@@ -110,7 +111,6 @@ namespace emodlib
             int GetNumHumans() const { return static_cast<int>(m_humans.size()); }
 
             // Access to individual components (for detailed inspection)
-            const std::vector<malaria::IntrahostComponent>& GetHumans() const { return m_humans; }
             const VectorPopulation& GetVectors() const { return m_vectors; }
 
         private:
@@ -118,7 +118,7 @@ namespace emodlib
             // Internal state
             // =====================================================
 
-            std::vector<malaria::IntrahostComponent> m_humans;
+            std::vector<malaria::IntrahostComponent*> m_humans;
             VectorPopulation m_vectors;
 
             std::shared_ptr<malaria::MalariaConfig> m_malaria_config;
