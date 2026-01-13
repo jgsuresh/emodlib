@@ -114,12 +114,20 @@ namespace emodlib
             Update_Infectious_Queue(dt, temperature);
             Update_Infected_Queue(dt, temperature);
             Update_Adult_Queue(dt, temperature, human_infectiousness);
-            Update_Immature_Queue(dt, temperature);
-            Update_Larval_Queue(dt, temperature);
-            Update_Egg_Queue(dt, temperature);
 
-            // Add new eggs from adult oviposition
-            AddEmergence();
+            if (m_config.enable_lifecycle)
+            {
+                // Full lifecycle: egg -> larva -> immature -> adult
+                Update_Immature_Queue(dt, temperature);
+                Update_Larval_Queue(dt, temperature);
+                Update_Egg_Queue(dt, temperature);
+                AddEggLaying();
+            }
+            else
+            {
+                // Simplified: direct adult emergence (bypasses aquatic stages)
+                AddEmergence();
+            }
 
             // Remove empty cohorts
             CleanupEmptyCohorts();
@@ -354,17 +362,26 @@ namespace emodlib
 
         void VectorPopulation::ProcessTransitions()
         {
-            // TODO: Chunk 6
+            // Stage transitions are handled directly in each queue's update method:
+            // - Update_Egg_Queue: egg -> larva
+            // - Update_Larval_Queue: larva -> immature
+            // - Update_Immature_Queue: immature -> adult
+            // - Update_Infected_Queue: infected -> infectious
+            // This method is kept for potential future use (e.g., batch transitions)
         }
 
         void VectorPopulation::ProcessTransmission(const std::vector<float>& human_infectiousness)
         {
-            // TODO: Chunk 7
+            // H->V transmission is handled directly in Update_Adult_Queue()
+            // V->H transmission is handled via GetSporozoiteChallenges()
+            // This method is kept for potential future use (e.g., stochastic transmission)
         }
 
         void VectorPopulation::AddEmergence()
         {
             // Add new adult cohort from daily emergence
+            // This is used for equilibrium initialization when egg/larval
+            // stages are not explicitly tracked
             float daily_emergence = m_config.GetDailyEmergence();
             if (daily_emergence > 0.1f)
             {
@@ -373,9 +390,84 @@ namespace emodlib
             }
         }
 
+        void VectorPopulation::AddEggLaying()
+        {
+            // Adult females lay eggs after blood meals
+            // Egg production rate = (adults / feeding_cycle) * egg_batch_size
+            //
+            // Simplification: Each day, fraction 1/days_between_feeds of adults oviposit
+
+            float feeding_fraction = 1.0f / m_config.days_between_feeds;
+            float egg_batch = m_config.egg_batch_size;
+
+            float total_eggs = 0.0f;
+
+            // Susceptible adults lay eggs
+            for (const auto& cohort : m_adults)
+            {
+                float eggs_from_cohort = cohort.population * feeding_fraction * egg_batch;
+                total_eggs += eggs_from_cohort;
+            }
+
+            // Infected adults lay eggs (slightly reduced)
+            float infected_factor = m_config.infected_egg_batch_factor;
+            for (const auto& cohort : m_infected)
+            {
+                float eggs_from_cohort = cohort.population * feeding_fraction * egg_batch * infected_factor;
+                total_eggs += eggs_from_cohort;
+            }
+
+            // Infectious adults lay eggs (slightly reduced)
+            for (const auto& cohort : m_infectious)
+            {
+                float eggs_from_cohort = cohort.population * feeding_fraction * egg_batch * infected_factor;
+                total_eggs += eggs_from_cohort;
+            }
+
+            // Add new egg cohort
+            if (total_eggs > 0.1f)
+            {
+                VectorCohort new_eggs(total_eggs, VectorState::EGG, 0.0f);
+                m_eggs.push_back(new_eggs);
+            }
+        }
+
         void VectorPopulation::Update_Egg_Queue(float dt, float temperature)
         {
-            // TODO: Chunk 6 - egg hatching
+            // Egg development (fixed duration, not temperature-dependent)
+            // progress = dt / egg_hatch_duration
+            float egg_progress = dt / m_config.egg_hatch_duration;
+
+            // Egg survival
+            float egg_survival = m_config.egg_survival_rate;
+
+            // Track cohorts that hatch (become larvae)
+            std::vector<VectorCohort> new_larvae;
+
+            for (auto& cohort : m_eggs)
+            {
+                // Apply mortality first
+                cohort.ApplyMortality(egg_survival);
+
+                // Add development progress
+                cohort.AddProgress(egg_progress);
+                cohort.IncrementAge(dt);
+
+                // Check for hatching to larvae
+                if (cohort.IsProgressComplete())
+                {
+                    VectorCohort transitioning = cohort;
+                    transitioning.TransitionTo(VectorState::LARVA);
+                    new_larvae.push_back(transitioning);
+                    cohort.population = 0.0f;  // Mark for removal
+                }
+            }
+
+            // Add newly hatched larvae to larval queue
+            for (auto& cohort : new_larvae)
+            {
+                m_larvae.push_back(cohort);
+            }
         }
 
         void VectorPopulation::Update_Larval_Queue(float dt, float temperature)
@@ -459,6 +551,30 @@ namespace emodlib
         {
             float base_mortality = m_config.GetAdultMortalityRate();
 
+            // Calculate average human infectiousness
+            float avg_infectiousness = 0.0f;
+            if (!human_infectiousness.empty())
+            {
+                for (float inf : human_infectiousness)
+                {
+                    avg_infectiousness += inf;
+                }
+                avg_infectiousness /= static_cast<float>(human_infectiousness.size());
+            }
+
+            // Calculate probability of mosquito becoming infected per feeding
+            // prob = biting_rate * anthropophily * avg_infectiousness * acquire_modifier
+            float infection_prob = m_config.GetBitingRate() * dt *
+                                   m_config.anthropophily *
+                                   avg_infectiousness *
+                                   m_config.acquire_modifier;
+
+            // Clamp to [0, 1]
+            infection_prob = std::min(1.0f, std::max(0.0f, infection_prob));
+
+            // Track newly infected cohorts
+            std::vector<VectorCohort> new_infected;
+
             for (auto& cohort : m_adults)
             {
                 // Age-dependent mortality (Styer et al.)
@@ -467,9 +583,26 @@ namespace emodlib
 
                 // Increment age
                 cohort.IncrementAge(dt);
+
+                // Human -> Vector transmission
+                if (infection_prob > 0.0f && cohort.population > 0.1f)
+                {
+                    // Split off infected portion
+                    float infected_count = cohort.population * infection_prob;
+                    if (infected_count > 0.1f)
+                    {
+                        VectorCohort infected_cohort = cohort.SplitCount(infected_count);
+                        infected_cohort.TransitionTo(VectorState::INFECTED);
+                        new_infected.push_back(infected_cohort);
+                    }
+                }
             }
 
-            // Transmission from humans to vectors handled in Chunk 7
+            // Add newly infected to infected queue
+            for (auto& cohort : new_infected)
+            {
+                m_infected.push_back(cohort);
+            }
         }
 
         void VectorPopulation::Update_Infected_Queue(float dt, float temperature)

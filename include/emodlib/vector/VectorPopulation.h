@@ -131,6 +131,7 @@ namespace emodlib
             void ProcessTransitions();
             void ProcessTransmission(const std::vector<float>& human_infectiousness);
             void AddEmergence();
+            void AddEggLaying();
             void CleanupEmptyCohorts();
 
             // =====================================================

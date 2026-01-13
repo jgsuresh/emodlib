@@ -67,6 +67,7 @@ namespace emodlib
             float egg_batch_size = 100.0f;         // Eggs per oviposition
             float infected_egg_batch_factor = 0.8f; // Reduction when infected
             float egg_survival_rate = 0.99f;       // Daily egg survival
+            float egg_hatch_duration = 2.0f;       // Days for eggs to hatch
 
             // =====================================================
             // Transmission parameters
@@ -82,6 +83,10 @@ namespace emodlib
 
             float carrying_capacity = 10000.0f;    // Equilibrium adult population
             float initial_infected_fraction = 0.0f; // For endemic initialization
+
+            // If true, use full egg->larva->immature->adult lifecycle
+            // If false, use simplified direct emergence (bypasses aquatic stages)
+            bool enable_lifecycle = false;
 
             // =====================================================
             // Computed values (derived from above)

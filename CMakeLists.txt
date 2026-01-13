@@ -12,7 +12,9 @@ set(EMODLIB_OBJECTS
     ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/IntrahostComponent.cpp
     ${CMAKE_SOURCE_DIR}/include/emodlib/malaria/MalariaAntibody.cpp
     ${CMAKE_SOURCE_DIR}/include/emodlib/utils/RANDOM.cpp
-    ${CMAKE_SOURCE_DIR}/include/emodlib/utils/suids.cpp)
+    ${CMAKE_SOURCE_DIR}/include/emodlib/utils/suids.cpp
+    ${CMAKE_SOURCE_DIR}/src/vector/VectorPopulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/vector/TransmissionSimulation.cpp)
 
 pybind11_add_module(_emodlib_py src/main.cpp ${EMODLIB_OBJECTS})
 
