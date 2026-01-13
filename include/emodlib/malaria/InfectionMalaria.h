@@ -24,12 +24,23 @@ namespace emodlib
         struct MalariaConfig;  // forward declaration
         class Susceptibility;
 
+        // Debug structure for forcing specific antigens (for Python comparison)
+        struct DebugAntigens {
+            int32_t msp_type;
+            int32_t nonspec_type;
+            std::vector<int32_t> irbc_types;        // size = CLONAL_PfEMP1_VARIANTS (50)
+            std::vector<int32_t> minor_epitope_types; // size = CLONAL_PfEMP1_VARIANTS (50)
+        };
+
         class Infection
         {
 
         public:
 
             static Infection *Create(Susceptibility* _susceptibility, MalariaConfig* config, int initial_hepatocytes=1);
+            // Debug version that accepts explicit antigens
+            static Infection *CreateWithAntigens(Susceptibility* _susceptibility, MalariaConfig* config,
+                                                  const DebugAntigens& antigens, int initial_hepatocytes=1);
 
             void Update(float dt);
 
@@ -90,6 +101,7 @@ namespace emodlib
 
             Infection(MalariaConfig* config);
             void Initialize(Susceptibility* _susceptibility, int initial_hepatocytes);
+            void InitializeWithAntigens(Susceptibility* _susceptibility, const DebugAntigens& antigens, int initial_hepatocytes);
 
             void malariaProcessHepatocytes(float dt);
             void processEndOfAsexualCycle(float dt);

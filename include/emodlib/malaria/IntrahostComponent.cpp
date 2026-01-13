@@ -63,6 +63,14 @@ namespace emodlib
             }
         }
 
+        void IntrahostComponent::ChallengeWithAntigens(const DebugAntigens& antigens)
+        {
+            if (infections.size() < m_config->max_ind_inf) {
+                Infection* inf = Infection::CreateWithAntigens(susceptibility, m_config.get(), antigens);
+                infections.push_back(inf);
+            }
+        }
+
         void IntrahostComponent::Treat()
         {
             infections.clear();  // TODO: emodlib#4 (asexual drug killing) + emodlib#3 (InfectionStateChange::Cleared)

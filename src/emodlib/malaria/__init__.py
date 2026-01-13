@@ -3,6 +3,7 @@ import os
 import yaml
 
 from .._emodlib_py.malaria import (
+    DebugAntigens,
     Infection,
     IntrahostComponent,
     MalariaConfig,
@@ -79,4 +80,4 @@ def create_config(params=None):
     return cfg
 
 
-__all__ = ["IntrahostComponent", "Susceptibility", "Infection", "MalariaConfig", "create_config"]
+__all__ = ["IntrahostComponent", "Susceptibility", "Infection", "MalariaConfig", "DebugAntigens", "create_config"]

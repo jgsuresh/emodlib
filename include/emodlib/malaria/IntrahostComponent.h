@@ -30,6 +30,7 @@ namespace emodlib
             void Update(float dt);
 
             void Challenge();
+            void ChallengeWithAntigens(const DebugAntigens& antigens);  // Debug: explicit antigens
             void Treat();
 
             int GetNumInfections() const;

@@ -109,6 +109,15 @@ void add_malaria_bindings(py::module& m) {
         .def_readwrite("n_asexual_cycles_wo_gametocytes", &MalariaConfig::n_asexual_cycles_wo_gametocytes);
 
 
+    // ==== Binding of the DebugAntigens struct (for forcing explicit antigens) ==== //
+    py::class_<DebugAntigens> (m, "DebugAntigens")
+        .def(py::init<>())
+        .def_readwrite("msp_type", &DebugAntigens::msp_type)
+        .def_readwrite("nonspec_type", &DebugAntigens::nonspec_type)
+        .def_readwrite("irbc_types", &DebugAntigens::irbc_types)
+        .def_readwrite("minor_epitope_types", &DebugAntigens::minor_epitope_types);
+
+
     // ==== Binding of the intrahost component ==== //
     py::class_<IntrahostComponent> (m, "IntrahostComponent")
 
@@ -124,6 +133,11 @@ void add_malaria_bindings(py::module& m) {
         .def("challenge",
              &IntrahostComponent::Challenge,
              "Challenge with a new infection")
+
+        .def("challenge_with_antigens",
+             &IntrahostComponent::ChallengeWithAntigens,
+             "Challenge with a new infection using explicit antigens (for debugging)",
+             "antigens"_a)
 
         .def("treat",
              &IntrahostComponent::Treat,

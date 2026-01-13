@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <numeric>
+#include <stdexcept>
 
 #include "emodlib/utils/Common.h"
 #include "emodlib/utils/Sigmoid.h"
@@ -100,6 +101,47 @@ namespace emodlib
             }
         }
 
+        // Debug version that creates infection with explicit antigens
+        Infection* Infection::CreateWithAntigens(Susceptibility* _susceptibility, MalariaConfig* config,
+                                                  const DebugAntigens& antigens, int initial_hepatocytes)
+        {
+            Infection *newinfection = new Infection(config);
+            newinfection->InitializeWithAntigens(_susceptibility, antigens, initial_hepatocytes);
+            return newinfection;
+        }
+
+        void Infection::InitializeWithAntigens(Susceptibility* _susceptibility, const DebugAntigens& antigens, int initial_hepatocytes)
+        {
+            suid = m_config->suidGenerator();
+            m_hepatocytes = initial_hepatocytes;
+
+            // Use explicit antigens instead of random
+            m_MSPtype = antigens.msp_type;
+            m_nonspectype = antigens.nonspec_type;
+
+            for (int i = 0; i < CLONAL_PfEMP1_VARIANTS; i++)
+            {
+                m_IRBCtype[i] = antigens.irbc_types[i];
+                m_minor_epitope_type[i] = antigens.minor_epitope_types[i];
+            }
+
+            immunity = _susceptibility;
+
+            m_MSP_antibody = immunity->RegisterAntibody(MalariaAntibodyType::MSP1, m_MSPtype);
+
+            for( int ivariant = 0; ivariant < m_PfEMP1_antibodies.size(); ivariant++ )
+            {
+                m_PfEMP1_antibodies[ivariant].major = nullptr;
+                m_PfEMP1_antibodies[ivariant].minor = nullptr;
+
+                if ( m_IRBC_count[ivariant] > 0 )
+                {
+                    m_PfEMP1_antibodies[ivariant].minor  = immunity->RegisterAntibody(MalariaAntibodyType::PfEMP1_minor, m_minor_epitope_type[ivariant]);
+                    m_PfEMP1_antibodies[ivariant].major  = immunity->RegisterAntibody(MalariaAntibodyType::PfEMP1_major, m_IRBCtype[ivariant]);
+                }
+            }
+        }
+
         void Infection::Update(float dt)
         {
             m_current_time += dt;  // EMOD 2.22: track time for antibody decay
@@ -131,8 +173,7 @@ namespace emodlib
                 // check for death due to death of all RBCs
                 if (immunity->get_RBC_count() < 1)
                 {
-                    std::cout << "Individual has no more red-blood cells";
-                    throw;  // TODO: emodlib#3 (InfectionStateChange::Killed)
+                    throw std::runtime_error("Individual has no more red-blood cells");  // TODO: emodlib#3 (InfectionStateChange::Killed)
                 }
 
                 // Immune Interaction
@@ -246,8 +287,7 @@ namespace emodlib
             // check for valid range of input, and only create next cycle if valid
             if (merozoitesurvival < 0)
             {
-                std::cout << "merozoitesurvival should not be negative";
-                throw;
+                throw std::runtime_error("merozoitesurvival should not be negative");
             }
 
             // Several antigen switching mechanisms are supported
