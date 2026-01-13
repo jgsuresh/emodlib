@@ -26,7 +26,13 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',  # Add a link to the Python source code for classes, functions etc.
     'nbsphinx',
+    'myst_parser',  # Support for markdown files
     ]
+
+# MyST parser settings
+myst_enable_extensions = [
+    "colon_fence",  # ::: for code blocks
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

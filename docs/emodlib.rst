@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    emodlib.malaria
+   emodlib.vector
 
 Module contents
 ---------------
