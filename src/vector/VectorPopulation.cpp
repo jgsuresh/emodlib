@@ -48,8 +48,12 @@ namespace emodlib
         void VectorPopulation::InitializeEquilibriumPopulation()
         {
             // At equilibrium, number of mosquitoes of age a is:
-            // N(a) = N(0) * survival^a
-            // where N(0) = daily_emergence
+            // N(a) = N(0) * cumulative_survival(a)
+            // where N(0) = daily_emergence and
+            // cumulative_survival(a) = S(0) * S(1) * ... * S(a-1)
+            //
+            // This properly accounts for age-dependent mortality (Styer model)
+            // by accumulating the product of daily survival at each age.
 
             float daily_emergence = m_config.GetDailyEmergence();
             float base_mortality = m_config.GetAdultMortalityRate();
@@ -57,14 +61,19 @@ namespace emodlib
             // Create cohorts up to ~3 lifespans (captures >95% of population)
             int max_age = static_cast<int>(3 * m_config.adult_life_expectancy);
 
+            // Track cumulative survival as we iterate through ages
+            float cumulative_survival = 1.0f;
+
             for (int age = 0; age < max_age; ++age)
             {
                 // Calculate expected population at this age
-                float survival_to_age = std::pow(
-                    m_config.GetSurvivalProbability(static_cast<float>(age), base_mortality),
-                    static_cast<float>(age)
+                float count = daily_emergence * cumulative_survival;
+
+                // Update cumulative survival for next iteration
+                // (probability of surviving from age to age+1)
+                cumulative_survival *= m_config.GetSurvivalProbability(
+                    static_cast<float>(age), base_mortality
                 );
-                float count = daily_emergence * survival_to_age;
 
                 if (count < 0.1f)
                 {
