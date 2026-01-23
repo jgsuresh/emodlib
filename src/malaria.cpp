@@ -76,6 +76,12 @@ void add_malaria_bindings(py::module& m) {
         .def_readwrite("base_gametocyte_mosquito_survival", &MalariaConfig::base_gametocyte_mosquito_survival)
         .def_readwrite("cytokine_gametocyte_inactivation", &MalariaConfig::cytokine_gametocyte_inactivation)
 
+        // Sporozoite challenge parameters (pre-erythrocytic immunity)
+        .def_readwrite("mean_sporozoites_per_bite", &MalariaConfig::mean_sporozoites_per_bite)
+        .def_readwrite("base_sporozoite_survival_fraction", &MalariaConfig::base_sporozoite_survival_fraction)
+        .def_readwrite("antibody_csp_killing_threshold", &MalariaConfig::antibody_csp_killing_threshold)
+        .def_readwrite("antibody_csp_killing_invwidth", &MalariaConfig::antibody_csp_killing_invwidth)
+
         // Susceptibility params
         .def_readwrite("memory_level", &MalariaConfig::memory_level)
         .def_readwrite("hyperimmune_decay_rate", &MalariaConfig::hyperimmune_decay_rate)
@@ -138,6 +144,16 @@ void add_malaria_bindings(py::module& m) {
              &IntrahostComponent::ChallengeWithAntigens,
              "Challenge with a new infection using explicit antigens (for debugging)",
              "antigens"_a)
+
+        .def("challenge_with_sporozoites",
+             &IntrahostComponent::ChallengeWithSporozoites,
+             "Challenge with sporozoites (may or may not cause infection based on CSP immunity)",
+             "n_sporozoites"_a)
+
+        .def("challenge_with_bites",
+             &IntrahostComponent::ChallengeWithBites,
+             "Challenge with infectious bites (converts to sporozoites, then challenges)",
+             "n_bites"_a = 1)
 
         .def("treat",
              &IntrahostComponent::Treat,

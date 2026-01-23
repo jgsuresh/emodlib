@@ -17,6 +17,13 @@ namespace emodlib
         {
             return 0.5f + 0.5f * tanh(x / 2.0f); // instead of 1/(1+exp(x)), prevents exp() from overflowing
         }
+
+
+        inline static float variableWidthSigmoid(float variable, float threshold, float invwidth)
+        {
+            if (threshold == 0.0f || invwidth <= 0.0f) return 0.5f;
+            return sigmoid(-(threshold - variable) / (threshold / invwidth));
+        }
     };
 
 }

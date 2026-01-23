@@ -44,6 +44,12 @@ namespace emodlib
             float base_gametocyte_mosquito_survival = DEFAULT_BASE_GAMETOCYTE_MOSQUITO_SURVIVAL;
             float cytokine_gametocyte_inactivation = DEFAULT_CYTOKINE_GAMETOCYTE_INACTIVATION;
 
+            // Sporozoite challenge parameters (pre-erythrocytic immunity)
+            float mean_sporozoites_per_bite = 11.0f;
+            float base_sporozoite_survival_fraction = 0.25f;
+            float antibody_csp_killing_threshold = 10.0f;
+            float antibody_csp_killing_invwidth = 1.5f;
+
             // =====================================================
             // Susceptibility parameters
             // =====================================================

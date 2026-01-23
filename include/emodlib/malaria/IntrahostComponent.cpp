@@ -71,6 +71,44 @@ namespace emodlib
             }
         }
 
+        bool IntrahostComponent::ChallengeWithSporozoites(int n_sporozoites)
+        {
+            if (infections.size() >= m_config->max_ind_inf) return false;
+
+            float survival_prob = m_config->base_sporozoite_survival_fraction;
+
+            // CSP antibody reduces sporozoite survival
+            IMalariaAntibody* csp = susceptibility->get_csp_antibody();
+            float csp_conc = csp->GetAntibodyConcentration();
+            if (csp_conc > 0) {
+                survival_prob *= (1.0f - Sigmoid::variableWidthSigmoid(
+                    log10f(csp_conc),
+                    log10f(m_config->antibody_csp_killing_threshold),
+                    m_config->antibody_csp_killing_invwidth
+                ));
+            }
+
+            // Auto-boost CSP antibody from exposure (matches EMOD behavior)
+            // Use a slow growth rate (~3 year time constant: 0.001/day)
+            csp->UpdateAntibodyCapacityByRate(1.0f, 0.001f);
+            csp->SetAntigenicPresence(true);
+
+            int hepatocytes = m_config->rng->Poisson(n_sporozoites * survival_prob);
+
+            if (hepatocytes > 0) {
+                Infection* inf = Infection::Create(susceptibility, m_config.get(), hepatocytes);
+                infections.push_back(inf);
+                return true;
+            }
+            return false;
+        }
+
+        bool IntrahostComponent::ChallengeWithBites(int n_bites)
+        {
+            int n_sporozoites = static_cast<int>(n_bites * m_config->mean_sporozoites_per_bite);
+            return ChallengeWithSporozoites(n_sporozoites);
+        }
+
         void IntrahostComponent::Treat()
         {
             infections.clear();  // TODO: emodlib#4 (asexual drug killing) + emodlib#3 (InfectionStateChange::Cleared)

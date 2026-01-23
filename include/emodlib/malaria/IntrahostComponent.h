@@ -31,6 +31,8 @@ namespace emodlib
 
             void Challenge();
             void ChallengeWithAntigens(const DebugAntigens& antigens);  // Debug: explicit antigens
+            bool ChallengeWithSporozoites(int n_sporozoites);
+            bool ChallengeWithBites(int n_bites = 1);
             void Treat();
 
             int GetNumInfections() const;
