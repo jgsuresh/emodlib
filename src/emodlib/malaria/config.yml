@@ -4,7 +4,7 @@ Falciparum_MSP_Variants: 32
 Falciparum_Nonspecific_Types: 76
 Falciparum_PfEMP1_Variants: 1070
 Run_Number: 12345
-Max_Individual_Infections: 5
+Max_Individual_Infections: 3
 infection_params:
   Antibody_IRBC_Kill_Rate: 1.596
   Antigen_Switch_Rate: 7.645570124964182e-10
@@ -26,6 +26,7 @@ susceptibility_params:
   Erythropoiesis_Anemia_Effect: 3.5
   Fever_IRBC_Kill_Rate: 1.4
   Maternal_Antibody_Decay_Rate: 0.01
+  Maternal_Antibody_Protection: 0.1327
   Max_MSP1_Antibody_Growthrate: 0.045
   Min_Adapted_Response: 0.05
   Nonspecific_Antibody_Growth_Rate_Factor: 0.5

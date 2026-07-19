@@ -94,6 +94,7 @@ void add_malaria_bindings(py::module& m) {
         .def_readwrite("antibody_days_to_long_term_decay", &MalariaConfig::antibody_days_to_long_term_decay)
         .def_readwrite("antibody_long_term_decay_days", &MalariaConfig::antibody_long_term_decay_days)
         .def_readwrite("maternal_antibody_decay_rate", &MalariaConfig::maternal_antibody_decay_rate)
+        .def_readwrite("maternal_antibody_protection", &MalariaConfig::maternal_antibody_protection)
         .def_readwrite("PfHRP2_boost_rate", &MalariaConfig::PfHRP2_boost_rate)
         .def_readwrite("PfHRP2_decay_rate", &MalariaConfig::PfHRP2_decay_rate)
         .def_readwrite("pyrogenic_threshold", &MalariaConfig::pyrogenic_threshold)

@@ -66,6 +66,7 @@ namespace emodlib
             float antibody_long_term_decay_days = 7300.0f;     // 20 year decay time constant
 
             float maternal_antibody_decay_rate = 0.01f;
+            float maternal_antibody_protection = 0.1327f;  // Initial maternal antibody strength for newborns
 
             float PfHRP2_boost_rate = 7.0e-14f;    // Picograms/iRBC/day
             float PfHRP2_decay_rate = 0.172f;      // Fraction per day (3.67 day half-life)

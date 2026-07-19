@@ -70,7 +70,9 @@ namespace emodlib
             m_ind_pyrogenic_threshold = m_config->pyrogenic_threshold;
             m_ind_fever_kill_rate = m_config->fever_IRBC_killrate;
 
-            // TODO: emodlib#9 (maternal antibody init)
+            // Initialize maternal antibodies (SIMPLE_WANING mode equivalent)
+            // In full EMOD, this would be scaled by mother's immunity; here we use the protection factor directly
+            m_maternal_antibody_strength = m_config->maternal_antibody_protection;
 
             m_CSP_antibody = MalariaAntibodyCSP::CreateAntibody(m_config, 0);
 
@@ -171,7 +173,7 @@ namespace emodlib
                 m_RBC = int64_t(m_RBC - (m_RBC * .00833 - m_RBCproduction) * dt); // *.00833 ==/120 (AVERAGE_RBC_LIFESPAN)
             }
 
-            // Cytokines decay with time constant of 12 hours
+            // Cytokines decay with time constant of 12 hours (matching EMOD's linear formula)
             m_cytokines -= (m_cytokines * 2 * dt);
             if (m_cytokines < 0) { m_cytokines = 0; }
 
@@ -188,12 +190,9 @@ namespace emodlib
             updateImmunityCSP(dt);
 
             // now all other antigens
-            if ( !m_antigenic_flag )
-            {
-                // NO ANTIGENS.  All antibodies decay to zero and all antibody_capacities decay towards 0.3
-                decayAllAntibodies(dt);
-            }
-            else
+            // Match EMOD: when no antigens present, do nothing.
+            // Decay for inactive antibodies is handled by IncreaseAntigenCount() when reactivated.
+            if ( m_antigenic_flag )
             {
                 // Update antigen-antibody reactions for MSP and PfEMP1 minor/major epitopes, including cytokine stimulation
                 float temp_cytokine_stimulation = 0; // used to track total stimulation of cytokines due to rupturing schizonts
@@ -251,9 +250,10 @@ namespace emodlib
 
         void Susceptibility::updateImmunityCSP( float dt )
         {
+            // Match EMOD: only update CSP when antigen is present; no per-step decay.
+            // Decay for inactive antibodies is handled by IncreaseAntigenCount() when reactivated.
             if ( !m_CSP_antibody->GetAntigenicPresence() )
             {
-                m_CSP_antibody->Decay( dt );
                 return;
             }
 
@@ -276,9 +276,10 @@ namespace emodlib
 
             for (auto antibody : m_active_MSP_antibodies)
             {
+                // Match EMOD: skip inactive antibodies (no per-step decay).
+                // Decay is handled by IncreaseAntigenCount() when reactivated.
                 if ( !antibody->GetAntigenicPresence() )
                 {
-                    antibody->Decay( dt );
                     continue;
                 }
 
@@ -299,9 +300,9 @@ namespace emodlib
 
             for (auto antibody : m_active_PfEMP1_minor_antibodies)
             {
+                // Match EMOD: skip inactive antibodies (no per-step decay).
                 if ( !antibody->GetAntigenicPresence() )
                 {
-                    antibody->Decay( dt );
                     continue;
                 }
 
@@ -317,9 +318,9 @@ namespace emodlib
         {
             for (auto antibody : m_active_PfEMP1_major_antibodies)
             {
+                // Match EMOD: skip inactive antibodies (no per-step decay).
                 if ( !antibody->GetAntigenicPresence() )
                 {
-                    antibody->Decay( dt );
                     continue;
                 }
 

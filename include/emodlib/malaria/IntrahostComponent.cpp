@@ -37,21 +37,29 @@ namespace emodlib
         {
             // TODO: emodlib#5 (mature gametocyte decay) + emodlib#4 (mature gametocyte drug killing)
 
-            susceptibility->Update(dt);
+            // Sub-step to match EMOD's Infection_Updates_Per_Timestep = 8.
+            // Without sub-stepping, large parasite bursts can deplete all RBCs
+            // in a single step before erythropoiesis feedback kicks in.
+            int n_substeps = 8;
+            float sub_dt = dt / n_substeps;
 
-            for (auto it = infections.begin(); it != infections.end();) {
+            for (int step = 0; step < n_substeps; step++) {
+                // Match EMOD order (Individual.cpp): infections first, then susceptibility
+                for (auto it = infections.begin(); it != infections.end();) {
+                    (*it)->Update(sub_dt);
 
-                (*it)->Update(dt);
+                    // TODO: emodlib#3 (InfectionStateChange::Cleared)
 
-                // TODO: emodlib#3 (InfectionStateChange::Cleared)
+                    if ((*it)->IsCleared()) {
+                        delete *it;
+                        it = infections.erase(it);
+                        continue;
+                    }
 
-                if ((*it)->IsCleared()) {
-                    delete *it;
-                    it = infections.erase(it);
-                    continue;
+                    ++it;
                 }
 
-                ++it;
+                susceptibility->Update(sub_dt);
             }
         }
 

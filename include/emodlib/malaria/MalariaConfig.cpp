@@ -50,6 +50,9 @@ namespace emodlib
             antibody_csp_decay_days = susc_pset["Antibody_CSP_Decay_Days"].cast<float>();
 
             maternal_antibody_decay_rate = susc_pset["Maternal_Antibody_Decay_Rate"].cast<float>();
+            if (susc_pset.contains("Maternal_Antibody_Protection")) {
+                maternal_antibody_protection = susc_pset["Maternal_Antibody_Protection"].cast<float>();
+            }
 
             pyrogenic_threshold = susc_pset["Pyrogenic_Threshold"].cast<float>();
             fever_IRBC_killrate = susc_pset["Fever_IRBC_Kill_Rate"].cast<float>();
