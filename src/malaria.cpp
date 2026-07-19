@@ -151,7 +151,9 @@ void add_malaria_bindings(py::module& m) {
 
           .def_property_readonly("pfemp1_major_types", &Infection::get_pfemp1_major_types)
 
-          .def_property_readonly("msp_antibody", &Infection::get_msp_antibody);
+          .def_property_readonly("msp_antibody", &Infection::get_msp_antibody)
+
+          .def_property_readonly("mature_gametocyte_density", &Infection::get_mature_gametocyte_density);
 
 
      py::class_<IMalariaAntibody, PyIMalariaAntibody<>> (m, "IMalariaAntibody")

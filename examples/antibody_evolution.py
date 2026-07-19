@@ -73,10 +73,12 @@ if __name__ == "__main__":
 
     relative_biting_risk = 1
 
-    final_age_years = 20
+    final_age_years = 100
 
     for t in range(final_age_years*365):
         age_years = t/365
+        if age_years % 5 == 0:
+            print(f"Age in years: {age_years}")
         surface_area = age_based_surface_area(age_years)
 
         # seasonal_effect = 0.45*np.sin(2*np.pi*t/365)+0.55
@@ -93,6 +95,7 @@ if __name__ == "__main__":
 
         if bite_today and ic.n_infections < 3:
             ic.challenge()
+            # print("challenged")
 
         # if t % int(1/individual_daily_eir) == 0:
         #     if ic.n_infections < 3:
